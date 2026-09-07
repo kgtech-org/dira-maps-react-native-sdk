@@ -1,4 +1,4 @@
-# @kgtech/dira-maps-react-native
+# @kgtech-org/dira-maps-react-native
 
 Client React Native de **Dira Maps** : itinéraires sur le réseau routier réel, géocodage, et les primitives de carte qui manquent toujours (conversion de coordonnées, polylines encodées).
 
@@ -66,15 +66,44 @@ Ce n'est pas un pis-aller : la carte web de Dira Maps fait exactement la même c
 
 ## Installation
 
-Le paquet n'est pas publié sur npm ; il s'installe depuis son dépôt. **Épinglez une version** :
+Deux voies. Les versions publiées sont listées dans [CHANGELOG.md](CHANGELOG.md).
 
-```sh
-npm install github:kgtech-org/dira-maps-react-native-sdk#v0.1.0
+### Depuis GitHub Packages (recommandé)
+
+Le paquet est publié sur le registre npm de GitHub à chaque tag `v*`.
+
+**La lecture exige un jeton, même si le dépôt est public** — c'est une
+contrainte de GitHub Packages, pas un choix de ce paquet. Créez un
+[jeton personnel](https://github.com/settings/tokens) avec la seule portée
+`read:packages`, puis, dans le `.npmrc` du projet consommateur :
+
+```ini
+@kgtech-org:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
 ```
 
-Sans le `#v0.1.0`, npm suit la branche par défaut : la version installée change alors sans que rien ne le dise dans votre `package-lock.json`, et deux machines de la même équipe peuvent compiler des paquets différents. Les versions publiées sont dans [CHANGELOG.md](CHANGELOG.md).
+```sh
+npm install @kgtech-org/dira-maps-react-native
+```
 
-`dist/` n'étant pas versionné, npm compile le paquet à l'installation via son script `prepare`.
+Ne mettez pas le jeton en clair dans le `.npmrc` versionné : `${GITHUB_TOKEN}`
+est résolu depuis l'environnement, ce qui marche aussi bien en local qu'en CI.
+
+### Depuis git, sans jeton
+
+Utile pour un essai rapide, ou si vous ne voulez pas gérer d'authentification.
+**Épinglez un tag** :
+
+```sh
+npm install github:kgtech-org/dira-maps-react-native-sdk#v0.2.0
+```
+
+Sans le `#v0.2.0`, npm suit la branche par défaut : la version installée change
+alors sans que rien ne le dise dans votre `package-lock.json`, et deux machines
+de la même équipe peuvent compiler des paquets différents.
+
+`dist/` n'étant pas versionné, npm compile le paquet à l'installation via son
+script `prepare`. C'est vrai des deux voies.
 
 Aucune dépendance à l'exécution. `react` est une dépendance de pair — requise, le hook étant réexporté par l'index.
 
@@ -85,7 +114,7 @@ Le paquet est du **CommonJS** : Metro le charge sans configuration. Il n'utilise
 ## Prise en main
 
 ```tsx
-import { DiraMapsClient, RouteService, toLatLng, useRoute } from '@kgtech/dira-maps-react-native'
+import { DiraMapsClient, RouteService, toLatLng, useRoute } from '@kgtech-org/dira-maps-react-native'
 
 const client = new DiraMapsClient({ baseUrl: process.env.EXPO_PUBLIC_MAPS_URL! })
 const routes = new RouteService(client)

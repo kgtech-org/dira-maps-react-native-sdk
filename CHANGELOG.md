@@ -6,6 +6,40 @@ s'installe depuis son dépôt (voir [README](README.md#installation)).
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 versions selon [SemVer](https://semver.org/lang/fr/).
 
+## [0.2.0] — 2026-09-07
+
+Le paquet est désormais **publié sur GitHub Packages** à chaque tag `v*`.
+
+### Changement de nom — action requise
+
+`@kgtech/dira-maps-react-native` devient **`@kgtech-org/dira-maps-react-native`**.
+
+Le registre npm de GitHub impose que le scope soit le **propriétaire du dépôt**
+(`kgtech-org`). Sous `@kgtech`, la publication est refusée : ce n'est pas un
+réglage, il n'y a pas de contournement. Le renommage est donc la condition pour
+que le paquet soit publiable ailleurs que par git.
+
+Si vous l'utilisiez déjà, changez le spécificateur d'import :
+
+```diff
+-import { useRoute } from '@kgtech/dira-maps-react-native'
++import { useRoute } from '@kgtech-org/dira-maps-react-native'
+```
+
+Aucune API ne change — mêmes quinze exports, même comportement.
+
+### Ajouté
+
+- Publication automatique sur `npm.pkg.github.com` au tag `v*`
+  (`.github/workflows/publish-package.yml`). Le workflow **refuse de publier**
+  si le tag ne correspond pas à la version du `package.json` : un numéro publié
+  ne se réutilise jamais, la faute doit être arrêtée avant.
+- `publishConfig.registry` dans le `package.json` : un `npm publish` lancé à la
+  main ne peut plus partir par erreur sur le registre public npmjs.
+- Section d'installation du README réécrite : registre (avec le jeton
+  `read:packages` qu'exige GitHub Packages, **même sur un dépôt public**) ou
+  git, au choix.
+
 ## [0.1.0] — 2026-09-07
 
 Première version. Le SDK rend des **données** à poser sur la carte native de
@@ -50,4 +84,5 @@ c'est expliqué en tête du README, avec les raisons de ne pas passer par une
   natif : Metro le charge sans configuration, et il n'y a ni liaison native ni
   `pod install`.
 
+[0.2.0]: https://github.com/kgtech-org/dira-maps-react-native-sdk/releases/tag/v0.2.0
 [0.1.0]: https://github.com/kgtech-org/dira-maps-react-native-sdk/releases/tag/v0.1.0

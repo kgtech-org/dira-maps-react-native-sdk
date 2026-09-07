@@ -1,0 +1,95 @@
+name: Publier le paquet (GitHub Packages)
+
+# Publie @kgtech-org/dira-maps-react-native sur npm.pkg.github.com à chaque
+# tag `v*`.
+#
+# Le tag est le déclencheur, et non un push sur `main` : une version est une
+# décision, pas la conséquence d'un commit. Publier à chaque push brûlerait un
+# numéro de version par correction de typo — et un numéro publié ne se réutilise
+# jamais.
+
+on:
+  push:
+    tags: ["v*"]
+  # Reprise manuelle : si la publication a échoué APRÈS le tag (registre
+  # indisponible, jeton expiré), rejouer sans avoir à retagger.
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Tag à publier (ex. v0.2.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+# Deux publications simultanées de la même version se marcheraient dessus ;
+# la seconde échouerait en 409 après avoir tout reconstruit.
+concurrency:
+  group: publish-package-${{ github.event.inputs.ref || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Vérifier puis publier
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          # Écrit le .npmrc qui pointe le scope vers GitHub Packages et lit
+          # NODE_AUTH_TOKEN. Sans lui, `npm publish` viserait npmjs.
+          registry-url: https://npm.pkg.github.com
+          scope: "@kgtech-org"
+
+      - name: Installer
+        run: npm ci
+
+      # LE garde-fou. Sans lui, un tag v0.3.0 posé sur un package.json resté en
+      # 0.2.0 publie 0.2.0 — ou échoue en 409 parce que 0.2.0 existe déjà. Dans
+      # les deux cas, le numéro annoncé n'est pas celui qui est publié, et
+      # personne ne s'en aperçoit avant de l'installer.
+      - name: Le tag doit correspondre à la version du paquet
+        run: |
+          set -euo pipefail
+          tag="${{ github.event.inputs.ref || github.ref_name }}"
+          version="v$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$version" ]; then
+            echo "::error::Le tag $tag ne correspond pas à package.json ($version)."
+            echo "Corrigez la version, retaggez, et republiez."
+            exit 1
+          fi
+          echo "Tag et version concordent : $tag"
+
+      # Publier est IRRÉVERSIBLE au sens qui compte : le numéro est consommé.
+      # Les contrôles passent donc avant, pas après.
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm test
+
+      # `npm publish` déclenche `prepare`, donc la compilation : `dist/` n'est
+      # pas versionné et n'a pas à l'être.
+      - name: Publier
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Récapitulatif
+        run: |
+          {
+            echo "### Publié"
+            echo
+            echo '```sh'
+            echo "npm install @kgtech-org/dira-maps-react-native@$(node -p "require('./package.json').version")"
+            echo '```'
+            echo
+            echo "La lecture depuis GitHub Packages exige un jeton \`read:packages\`, même sur un dépôt public — voir le README."
+          } >> "$GITHUB_STEP_SUMMARY"
