@@ -1,0 +1,35 @@
+{
+  "name": "@kgtech/dira-maps-react-native",
+  "version": "0.1.0",
+  "description": "Client React Native de Dira Maps : itinéraires routiers, géocodage et primitives de carte. Fournit des DONNÉES à poser sur la carte native — Dira Maps n'a aucune vue à intégrer.",
+  "license": "UNLICENSED",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kgtech-org/dira-maps-react-native-sdk.git"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": ["dist", "README.md"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": { "optional": true }
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "react": "^19.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  },
+  "keywords": ["dira", "react-native", "maps", "routing", "geocoding", "togo"]
+}
