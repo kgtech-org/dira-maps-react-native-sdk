@@ -44,11 +44,19 @@ Ce n'est pas un pis-aller : la carte web de Dira Maps fait exactement la même c
 
 ## Installation
 
+Le paquet n'est pas publié sur npm ; il s'installe depuis son dépôt :
+
 ```sh
-npm install @kgtech/dira-maps-react-native
+npm install github:kgtech-org/dira-maps-react-native-sdk
 ```
 
-Aucune dépendance à l'exécution. `react` est une dépendance de pair, et seulement pour le hook.
+`dist/` n'étant pas versionné, npm compile le paquet à l'installation via son script `prepare`.
+
+Aucune dépendance à l'exécution. `react` est une dépendance de pair — requise, le hook étant réexporté par l'index.
+
+### Compatibilité React Native
+
+Le paquet est du **CommonJS** : Metro le charge sans configuration. Il n'utilise ni DOM, ni module natif, ni `URLSearchParams` (partiellement implémenté selon les versions de React Native), et ne s'appuie que sur `fetch` et `AbortController`, présents dans React Native depuis 0.60. Aucune étape de liaison native, aucun `pod install`.
 
 ## Prise en main
 

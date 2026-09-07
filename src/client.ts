@@ -75,7 +75,7 @@ export class DiraMapsClient {
    * client normalise, les appelants passent `lng` partout.
    */
   async reverseGeocode(point: LngLat, signal?: AbortSignal): Promise<GeocodeResult | null> {
-    const query = new URLSearchParams({ lat: String(point[1]), lon: String(point[0]) });
+    const query = queryString({ lat: point[1], lon: point[0] });
     const payload = await this.get<GeocodePayload>(`/geocode/reverse?${query}`, signal);
     return firstGeocodeResult(payload);
   }
@@ -86,9 +86,7 @@ export class DiraMapsClient {
     options: { city?: string; limit?: number } = {},
     signal?: AbortSignal,
   ): Promise<GeocodeResult[]> {
-    const query = new URLSearchParams({ q });
-    if (options.city) query.set('ville', options.city);
-    if (options.limit !== undefined) query.set('limit', String(options.limit));
+    const query = queryString({ q, ville: options.city, limit: options.limit });
     const payload = await this.get<GeocodePayload>(`/geocode?${query}`, signal);
     return (payload.results ?? []).map(toGeocodeResult);
   }
@@ -142,6 +140,20 @@ export class DiraMapsClient {
       throw new DiraMapsError('server', `Dira Maps: réponse illisible sur ${path}`, response.status);
     }
   }
+}
+
+/**
+ * Construit une chaîne de requête, les valeurs `undefined` étant omises.
+ *
+ * Écrit à la main plutôt qu'avec `URLSearchParams` : ce global n'est que
+ * partiellement implémenté selon les versions de React Native, et une
+ * bibliothèque destinée au mobile ne peut pas parier là-dessus.
+ */
+function queryString(params: Record<string, string | number | undefined>): string {
+  return Object.entries(params)
+    .filter((entry): entry is [string, string | number] => entry[1] !== undefined)
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
+    .join('&');
 }
 
 function httpError(path: string, status: number): DiraMapsError {

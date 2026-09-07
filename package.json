@@ -9,11 +9,14 @@
     "url": "git+https://github.com/kgtech-org/dira-maps-react-native-sdk.git"
   },
   "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "sideEffects": false,
   "scripts": {
+    "prepare": "npm run build",
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -22,14 +25,24 @@
   "peerDependencies": {
     "react": ">=18"
   },
-  "peerDependenciesMeta": {
-    "react": { "optional": true }
-  },
   "devDependencies": {
     "@types/react": "^19.0.0",
     "react": "^19.0.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
   },
-  "keywords": ["dira", "react-native", "maps", "routing", "geocoding", "togo"]
+  "keywords": [
+    "dira",
+    "react-native",
+    "maps",
+    "routing",
+    "geocoding",
+    "togo"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  }
 }
