@@ -26,6 +26,18 @@ C'est l'idée qui a l'air raisonnable et qui coûte cher. Cinq raisons cumulativ
 4. **Aucune histoire hors-ligne.** La carte native garde ses tuiles en cache ; une WebView repart de zéro à chaque perte de réseau — au pire moment.
 5. Gestes, inertie, retour haptique : tout ce qui rend une carte utilisable d'une main est perdu.
 
+### Et le « fond de carte Dira », alors ?
+
+Nuance importante, parce que la question revient : le serveur QGIS de Dira Maps **publie bien des données cartographiques** — `routes`, `batiments`, `points_interet`, importées d'OpenStreetMap dans PostGIS, par ville. `diraOverlayTemplate()` en construit l'URL de tuiles WMS, à poser **en surimpression** sur la carte native.
+
+Ce n'est pas un fond pour autant, et trois limites décident :
+
+- **Ni eau, ni occupation du sol, ni trait de côte, ni limites, ni étiquettes de rue.** Posées seules, ces trois couches donnent un plan noir sur blanc flottant dans le vide. C'est pourquoi QWC2 — le visualiseur de Dira Maps lui-même — configure un fond `mapnik`, c'est-à-dire OpenStreetMap, et pose ses couches dessus.
+- **Emprise ≈ 2,6 km de côté** autour de chaque centre-ville (`DIRA_OSM_IMPORT_HALF`, 0,012°). Au-delà, la surimpression est **vide** — pas moins détaillée : vide. Un livreur qui traverse Lomé en sort.
+- **Rendu à la demande, sans cache** : chaque tuile est une requête PostGIS suivie d'une rasterisation. Et `/ows/` n'est pas authentifié.
+
+Pour un usage soutenu, la réponse est un **cache de tuiles (WMTS ou XYZ) devant QGIS Server**, pas l'appel direct — et une emprise d'import élargie. Tant que ce n'est pas en place, la surimpression a sa place en démonstration ou sur une zone maîtrisée, pas sous les yeux d'un livreur.
+
 ### Le partage réel des rôles
 
 **Le sol vient de la carte native du téléphone. Dira Maps fournit ce qu'on dessine dessus.**
@@ -35,6 +47,7 @@ Ce n'est pas un pis-aller : la carte web de Dira Maps fait exactement la même c
 | Besoin | Qui le sert |
 |---|---|
 | Fond de carte | `expo-maps` / `react-native-maps` — **jamais** Dira Maps |
+| Couches Dira en surimpression | **ce paquet** → `diraOverlayTemplate()`, avec les réserves ci-dessus |
 | Tracé routier réel | **ce paquet** → `RouteService` |
 | Adresse d'un point | **ce paquet** → `client.reverseGeocode()` |
 | Position de l'utilisateur | GPS du téléphone |
@@ -125,6 +138,7 @@ Quand aucun moteur de routage n'est configuré côté serveur (503), `RouteServi
 | `toLatLng` · `toLngLat` · `toLatLngList` · `toLngLatList` | conversions d'ordre |
 | `isValidLngLat` | garde-fou de bornes |
 | `decodePolyline` · `encodePolyline` | polylines encodées |
+| `diraOverlayTemplate` | URL de tuiles WMS des couches Dira, en SURIMPRESSION |
 | `approximateRoute` · `tourKey` | repli et clé de mémorisation, exposés |
 | `DiraMapsError` | erreur typée par conduite à tenir |
 
