@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { diraOverlayTemplate } from '../overlay';
+import { diraOverlayTemplate, diraTileTemplate } from '../overlay';
 
 describe('diraOverlayTemplate', () => {
   const base = { siteUrl: 'https://maps.dira.llc', city: 'lome' as const };
@@ -36,5 +36,22 @@ describe('diraOverlayTemplate', () => {
     expect(diraOverlayTemplate({ ...base, siteUrl: 'https://maps.dira.llc/' })).toContain(
       'https://maps.dira.llc/ows/dira_lome?',
     );
+  });
+});
+
+describe('diraTileTemplate', () => {
+  it('passe par l’API, où est le cache, et non par le serveur QGIS', () => {
+    // /ows/ rend à la demande et n'est pas censé être exposé aux clients.
+    const url = diraTileTemplate({ apiUrl: 'https://maps.dira.llc/api', city: 'lome' });
+    expect(url).toBe('https://maps.dira.llc/api/tiles/lome/{z}/{x}/{y}.png');
+    expect(url).not.toContain('/ows/');
+  });
+
+  it('laisse les gabarits {z}/{x}/{y} intacts pour le composant de carte', () => {
+    const url = diraTileTemplate({ apiUrl: 'https://maps.dira.llc/api/', city: 'dakar' });
+    expect(url).toContain('{z}');
+    expect(url).toContain('{x}');
+    expect(url).toContain('{y}');
+    expect(url).not.toContain('//tiles');
   });
 });

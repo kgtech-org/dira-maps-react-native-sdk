@@ -14,8 +14,8 @@ export type { DiraMapsErrorKind } from './errors';
 export { RouteService, approximateRoute, tourKey } from './route-service';
 export { toLatLng, toLatLngList, toLngLat, toLngLatList, isValidLngLat } from './coords';
 export { decodePolyline, encodePolyline } from './polyline';
-export { diraOverlayTemplate } from './overlay';
-export type { DiraOverlayOptions } from './overlay';
+export { diraTileTemplate, diraOverlayTemplate } from './overlay';
+export type { DiraTileOptions, DiraOverlayOptions } from './overlay';
 export { useRoute } from './use-route';
 export type { UseRouteState } from './use-route';
 export type {

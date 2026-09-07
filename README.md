@@ -36,7 +36,13 @@ Ce n'est pas un fond pour autant, et trois limites décident :
 - **Emprise ≈ 2,6 km de côté** autour de chaque centre-ville (`DIRA_OSM_IMPORT_HALF`, 0,012°). Au-delà, la surimpression est **vide** — pas moins détaillée : vide. Un livreur qui traverse Lomé en sort.
 - **Rendu à la demande, sans cache** : chaque tuile est une requête PostGIS suivie d'une rasterisation. Et `/ows/` n'est pas authentifié.
 
-Pour un usage soutenu, la réponse est un **cache de tuiles (WMTS ou XYZ) devant QGIS Server**, pas l'appel direct — et une emprise d'import élargie. Tant que ce n'est pas en place, la surimpression a sa place en démonstration ou sur une zone maîtrisée, pas sous les yeux d'un livreur.
+**Le cache de tuiles existe désormais côté serveur** (`GET /api/tiles/{ville}/{z}/{x}/{y}.png`) : chaque tuile est calculée une fois puis servie depuis Redis, et le client ne joint jamais QGIS Server. C'est `diraTileTemplate()` qu'il faut utiliser — `{z}/{x}/{y}` est compris par n'importe quel composant de carte, là où le WMS exige un composant spécialisé.
+
+```tsx
+<UrlTile urlTemplate={diraTileTemplate({ apiUrl: MAPS_URL, city: delivery.city })} />
+```
+
+`diraOverlayTemplate()` (WMS direct) reste pour les déploiements dont le backend ne sert pas encore `/api/tiles`. Les deux premières limites, elles, demeurent : ces couches ne font pas un fond, et l'emprise reste bornée à l'import — ≈ 13 km de côté depuis l'élargissement, contre 2,6 km auparavant.
 
 ### Le partage réel des rôles
 
@@ -47,7 +53,7 @@ Ce n'est pas un pis-aller : la carte web de Dira Maps fait exactement la même c
 | Besoin | Qui le sert |
 |---|---|
 | Fond de carte | `expo-maps` / `react-native-maps` — **jamais** Dira Maps |
-| Couches Dira en surimpression | **ce paquet** → `diraOverlayTemplate()`, avec les réserves ci-dessus |
+| Couches Dira en surimpression | **ce paquet** → `diraTileTemplate()`, avec les réserves ci-dessus |
 | Tracé routier réel | **ce paquet** → `RouteService` |
 | Adresse d'un point | **ce paquet** → `client.reverseGeocode()` |
 | Position de l'utilisateur | GPS du téléphone |
@@ -138,7 +144,8 @@ Quand aucun moteur de routage n'est configuré côté serveur (503), `RouteServi
 | `toLatLng` · `toLngLat` · `toLatLngList` · `toLngLatList` | conversions d'ordre |
 | `isValidLngLat` | garde-fou de bornes |
 | `decodePolyline` · `encodePolyline` | polylines encodées |
-| `diraOverlayTemplate` | URL de tuiles WMS des couches Dira, en SURIMPRESSION |
+| `diraTileTemplate` | URL de tuiles `{z}/{x}/{y}` mémoïsées — **voie recommandée** |
+| `diraOverlayTemplate` | URL de tuiles WMS directes, sans cache — repli |
 | `approximateRoute` · `tourKey` | repli et clé de mémorisation, exposés |
 | `DiraMapsError` | erreur typée par conduite à tenir |
 

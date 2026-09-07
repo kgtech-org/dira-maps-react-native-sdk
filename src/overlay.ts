@@ -30,6 +30,37 @@ import type { City } from './types';
  * Pour un usage soutenu, la bonne réponse est un cache de tuiles (WMTS ou XYZ)
  * devant QGIS Server, pas cet appel direct.
  */
+export interface DiraTileOptions {
+  /**
+   * Racine de l'API Dira Maps — `https://maps.dira.llc/api`, la même que celle
+   * du client. Les tuiles passent par l'API, pas par le serveur QGIS : c'est
+   * là qu'est le cache, et le serveur cartographique n'est pas exposé.
+   */
+  apiUrl: string;
+  city: City | string;
+}
+
+/**
+ * Gabarit d'URL de tuiles `{z}/{x}/{y}`, la façon RECOMMANDÉE de consommer les
+ * couches Dira.
+ *
+ * Chaque tuile est calculée une fois par le serveur puis servie depuis Redis,
+ * et le format `{z}/{x}/{y}` est compris par n'importe quel composant de carte
+ * — `UrlTile` de react-native-maps, les surcouches de tuiles ailleurs — là où
+ * le WMS exige un composant spécialisé qui n'existe pas partout.
+ *
+ * ```tsx
+ * <UrlTile urlTemplate={diraTileTemplate({ apiUrl: MAPS_URL, city: delivery.city })} />
+ * ```
+ *
+ * Les réserves de {@link diraOverlayTemplate} sur la nature de ces couches —
+ * une surimpression, jamais un fond — valent identiquement ici.
+ */
+export function diraTileTemplate(options: DiraTileOptions): string {
+  const api = options.apiUrl.replace(/\/+$/, '');
+  return `${api}/tiles/${options.city}/{z}/{x}/{y}.png`;
+}
+
 export interface DiraOverlayOptions {
   /**
    * Racine du SITE Dira Maps — `https://maps.dira.llc`.
@@ -54,6 +85,11 @@ const DEFAULT_LAYERS = ['batiments', 'routes'] as const;
  * Construit le gabarit d'URL d'une tuile WMS, au format attendu par les
  * composants de tuiles WMS de React Native (`{minX}`, `{minY}`, `{maxX}`,
  * `{maxY}`, `{width}`, `{height}`).
+ *
+ * ⚠️ Préférez {@link diraTileTemplate} : le WMS frappe QGIS Server à chaque
+ * image, sans cache, et impose un composant WMS que toutes les bibliothèques
+ * de carte n'ont pas. Cette fonction reste pour les déploiements dont le
+ * backend ne sert pas encore `/api/tiles`.
  *
  * Le SDK ne dessine rien : il rend une chaîne. Le rendu appartient au
  * composant de carte, et cela reste vrai ici.

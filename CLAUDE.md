@@ -10,7 +10,7 @@ Dira Maps est un SIG web : ses clients (`maplibre-gl` + `react-dom`, QWC2/OpenLa
 
 Ce qui traverse le fil jusqu'au mobile est **du JSON sur HTTP**. Le **fond de carte vient du composant natif du téléphone** — c'est d'ailleurs ce que fait la carte web de Dira Maps, qui pose ses données sur des tuiles OpenStreetMap, comme la console d'administration Dira Food et le simulateur de dira-tracking.
 
-**Nuance à ne pas perdre** : le serveur QGIS publie de vraies données (`routes`, `batiments`, `points_interet`, importées d'OSM dans PostGIS), et `diraOverlayTemplate()` en donne l'URL de tuiles WMS. C'est une **surimpression**, jamais un fond : sans eau, occupation du sol, trait de côte ni étiquettes, et sur ≈ 2,6 km autour du centre-ville seulement. QWC2, le visualiseur de Dira Maps, configure lui-même un fond `mapnik` (OpenStreetMap) sous ces couches. Le nom de la fonction dit « overlay » exprès : c'est là que le malentendu se réintroduirait.
+**Nuance à ne pas perdre** : le serveur QGIS publie de vraies données (`routes`, `batiments`, `points_interet`, importées d'OSM dans PostGIS), et `diraTileTemplate()` en donne l'URL de tuiles mémoïsées (`/api/tiles/…`, cache Redis côté serveur ; `diraOverlayTemplate()` reste le repli WMS direct). C'est une **surimpression**, jamais un fond : sans eau, occupation du sol, trait de côte ni étiquettes, et sur ≈ 2,6 km autour du centre-ville seulement. QWC2, le visualiseur de Dira Maps, configure lui-même un fond `mapnik` (OpenStreetMap) sous ces couches. Le nom de la fonction dit « overlay » exprès : c'est là que le malentendu se réintroduirait.
 
 En conséquence, sont **hors périmètre définitif** : tout composant `<Map>`, toute `WebView` affichant un client Dira Maps, tout module natif de rendu. Une demande allant dans ce sens est un malentendu à dissiper, pas une fonctionnalité à livrer — le README ouvre là-dessus, et c'est délibéré.
 
@@ -30,7 +30,7 @@ src/
 ├── route-service.ts  # tournée : repli signalé + mémorisation
 ├── use-route.ts      # hook React
 ├── coords.ts         # LE seul endroit où l'ordre des coordonnées s'inverse
-├── overlay.ts        # URL de tuiles WMS des couches Dira (SURIMPRESSION)
+├── overlay.ts        # URL de tuiles des couches Dira (SURIMPRESSION, jamais un fond)
 ├── polyline.ts       # polylines encodées (précision 5)
 ├── errors.ts         # DiraMapsError, classée par conduite à tenir
 └── types.ts          # LngLat (fil) vs LatLng (carte native), distincts exprès
