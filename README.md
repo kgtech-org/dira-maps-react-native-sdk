@@ -28,13 +28,16 @@ C'est l'idée qui a l'air raisonnable et qui coûte cher. Cinq raisons cumulativ
 
 ### Et le « fond de carte Dira », alors ?
 
-Nuance importante, parce que la question revient : le serveur QGIS de Dira Maps **publie bien des données cartographiques** — `routes`, `batiments`, `points_interet`, importées d'OpenStreetMap dans PostGIS, par ville. `diraOverlayTemplate()` en construit l'URL de tuiles WMS, à poser **en surimpression** sur la carte native.
+Nuance importante, parce que la question revient : le serveur QGIS de Dira Maps **publie bien des données cartographiques** — `occupation_sol`, `eau`, `batiments`, `routes`, `points_interet`, importées d'OpenStreetMap dans PostGIS, par ville. `diraTileTemplate()` en construit l'URL de tuiles, à poser sur la carte native.
 
-Ce n'est pas un fond pour autant, et trois limites décident :
+Depuis la migration `0006` de Dira Maps, deux couches de **sol** s'ajoutent — `eau` et `occupation_sol` — et les rues portent leurs **étiquettes de nom**. Ces tuiles peuvent donc servir de fond à part entière, ce qui n'était pas vrai auparavant.
 
-- **Ni eau, ni occupation du sol, ni trait de côte, ni limites, ni étiquettes de rue.** Posées seules, ces trois couches donnent un plan noir sur blanc flottant dans le vide. C'est pourquoi QWC2 — le visualiseur de Dira Maps lui-même — configure un fond `mapnik`, c'est-à-dire OpenStreetMap, et pose ses couches dessus.
-- **Emprise ≈ 2,6 km de côté** autour de chaque centre-ville (`DIRA_OSM_IMPORT_HALF`, 0,012°). Au-delà, la surimpression est **vide** — pas moins détaillée : vide. Un livreur qui traverse Lomé en sort.
-- **Rendu à la demande, sans cache** : chaque tuile est une requête PostGIS suivie d'une rasterisation. Et `/ows/` n'est pas authentifié.
+Deux conditions demeurent, et elles sont **opérationnelles, pas logicielles** :
+
+- **Les données doivent avoir été réimportées** (`app.etl.import_osm`) et **les projets QGIS régénérés** (`build_project.py`). Sans cela, `occupation_sol` et `eau` sont vides et le rendu retombe sur un plan flottant qu'il faut poser sur un sol tiers.
+- **L'emprise reste bornée à ce qui a été importé** : ≈ 13 km de côté par ville depuis l'élargissement, contre 2,6 km auparavant. Au-delà, la carte est **vide** — pas moins détaillée : vide.
+
+En cas de doute, gardez le fond natif du téléphone : il est toujours correct, partout, et les couches Dira se posent dessus sans rien changer d'autre.
 
 **Le cache de tuiles existe désormais côté serveur** (`GET /api/tiles/{ville}/{z}/{x}/{y}.png`) : chaque tuile est calculée une fois puis servie depuis Redis, et le client ne joint jamais QGIS Server. C'est `diraTileTemplate()` qu'il faut utiliser — `{z}/{x}/{y}` est compris par n'importe quel composant de carte, là où le WMS exige un composant spécialisé.
 
