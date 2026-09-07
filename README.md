@@ -66,11 +66,13 @@ Ce n'est pas un pis-aller : la carte web de Dira Maps fait exactement la même c
 
 ## Installation
 
-Le paquet n'est pas publié sur npm ; il s'installe depuis son dépôt :
+Le paquet n'est pas publié sur npm ; il s'installe depuis son dépôt. **Épinglez une version** :
 
 ```sh
-npm install github:kgtech-org/dira-maps-react-native-sdk
+npm install github:kgtech-org/dira-maps-react-native-sdk#v0.1.0
 ```
+
+Sans le `#v0.1.0`, npm suit la branche par défaut : la version installée change alors sans que rien ne le dise dans votre `package-lock.json`, et deux machines de la même équipe peuvent compiler des paquets différents. Les versions publiées sont dans [CHANGELOG.md](CHANGELOG.md).
 
 `dist/` n'étant pas versionné, npm compile le paquet à l'installation via son script `prepare`.
 
