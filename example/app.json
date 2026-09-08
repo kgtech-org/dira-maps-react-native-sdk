@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "Dira Maps — banc d'essai",
+    "slug": "dira-maps-sdk-example",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": { "supportsTablet": true },
+    "android": {
+      "package": "tech.kg.diramaps.example"
+    }
+  }
+}

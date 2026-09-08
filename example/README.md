@@ -1,0 +1,83 @@
+# Banc d'essai du SDK Dira Maps
+
+Une application Expo qui exerce **toutes** les fonctionnalités du SDK, et le même diagnostic en ligne de commande — sans appareil ni simulateur.
+
+Son but n'est pas de faire une démonstration flatteuse : c'est de **dire ce qui marche et ce qui ne marche pas** sur un déploiement Dira Maps donné, et pourquoi c'est gênant.
+
+## En ligne de commande
+
+C'est la voie la plus rapide, et la seule utilisable en intégration continue.
+
+```sh
+cd example && npm install
+npm run check                                        # contre https://maps.dira.llc/api
+EXPO_PUBLIC_MAPS_URL=http://localhost:8080/api npm run check
+npm run check:offline                                # vérifications pures seulement
+```
+
+Sortie type :
+
+```
+✓ Conversion de coordonnées
+    Lomé converti et reconverti sans dérive
+! Couverture du fond
+    3/5 tuiles portent des données (tailles : 24310, 18022, 402, 402, 15660 o) — emprise d'import trop étroite
+    en jeu : Hors de l'emprise importée la carte est VIDE, pas moins détaillée. …
+```
+
+Trois états, et la nuance compte : `✓` passe, `✗` échoue (code de sortie 1), **`!` avertit sans faire échouer** — « le moteur de routage n'est pas configuré » est un état de déploiement légitime, pas une régression. Faire échouer là-dessus rendrait le banc d'essai inutilisable en développement.
+
+## Sur un appareil
+
+```sh
+npm start          # puis « a » (Android) ou « i » (iOS)
+```
+
+`react-native-maps` est inclus dans Expo Go : aucun *dev build* n'est nécessaire.
+
+L'écran a deux moitiés. **En haut**, une carte qui montre le partage des rôles du SDK : le **sol** vient du composant natif, les couches Dira se posent dessus en tuiles, et le tracé vient de `/api/calc/route`. Voir les trois superposés vaut mieux qu'un paragraphe de documentation. **En bas**, le même diagnostic, exécuté depuis l'appareil — c'est là que se voient les choses qu'aucun émulateur ne reproduit : un réseau mobile lent, un proxy d'entreprise, un certificat refusé.
+
+Un repli en segments droits apparaît **en pointillé** sur la carte, pas seulement dans un bandeau : ainsi il ne peut pas se faire passer pour un itinéraire.
+
+## Ce qui est vérifié
+
+| Vérification | Ce que casserait un échec |
+|---|---|
+| Conversion de coordonnées | un marqueur au large de la Somalie, sans erreur levée |
+| Polylines encodées | on n'afficherait que le parcours *prévu*, jamais le réel |
+| Clé de tournée | l'itinéraire d'une course servi pour une autre |
+| Itinéraire routier | des segments droits au lieu de la voirie |
+| Mémoïsation de l'itinéraire | le quota du moteur de routage épuisé |
+| Géocodage inverse / recherche | pas d'adresse lisible sur un point |
+| Tuiles mémoïsées | QGIS rastérise à chaque déplacement de carte |
+| **Couverture du fond** | **hors emprise, la carte est vide — pas moins détaillée : vide** |
+| Surimpression WMS | le repli est indisponible |
+| Erreurs typées | on réessaie une panne qu'il fallait contourner, ou l'inverse |
+
+La couverture du fond est la plus utile après un import : elle échantillonne une croix de tuiles autour du centre-ville et compte celles qui portent des données. L'heuristique est assumée — une tuile sans donnée est un PNG transparent, donc minuscule — et ne prétend pas mesurer la richesse du rendu, seulement distinguer « il y a quelque chose » de « il n'y a rien ».
+
+## Configuration
+
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `EXPO_PUBLIC_MAPS_URL` | `https://maps.dira.llc/api` | racine de l'API |
+| `EXPO_PUBLIC_MAPS_SITE_URL` | `https://maps.dira.llc` | racine du site, pour `/ows/` |
+| `EXPO_PUBLIC_MAPS_CITY` | `lome` | ville testée |
+| `EXPO_PUBLIC_MAPS_LNG` / `_LAT` | Lomé | centre de la ville testée |
+
+Les deux premières sont **distinctes** : le serveur QGIS est servi sous `/ows/`, hors de l'API. Les confondre donne des 404 silencieux et une carte simplement vide.
+
+## Structure
+
+```
+example/
+├── App.tsx           # carte + diagnostic, sur l'appareil
+├── index.ts
+└── src/
+    ├── checks.ts     # les vérifications — SANS React ni React Native
+    ├── cli.ts        # le même diagnostic, sans interface
+    ├── config.ts     # cibles, depuis l'environnement
+    └── tile-math.ts  # [lng, lat] → z/x/y, pour savoir quelle tuile demander
+```
+
+`checks.ts` ne dépend ni de React ni de React Native : c'est ce qui permet au même code de tourner sur l'appareil et dans un terminal. Une divergence entre les deux ferait douter des deux.

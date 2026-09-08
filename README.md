@@ -183,6 +183,21 @@ Quand aucun moteur de routage n'est configuré côté serveur (503), `RouteServi
 | `approximateRoute` · `tourKey` | repli et clé de mémorisation, exposés |
 | `DiraMapsError` | erreur typée par conduite à tenir |
 
+## Banc d'essai
+
+`example/` est une application Expo qui exerce **toutes** les fonctionnalités du SDK — et le même diagnostic en ligne de commande, sans appareil ni simulateur :
+
+```sh
+cd example && npm install
+npm run check                                        # contre un déploiement réel
+npm run check:offline                                # vérifications pures seulement
+npm start                                            # sur un appareil, avec la carte
+```
+
+Son but n'est pas de faire une démonstration flatteuse mais de **dire ce qui ne marche pas** sur un déploiement donné, et pourquoi c'est gênant. La vérification la plus utile après un import est la **couverture du fond** : elle échantillonne des tuiles autour du centre-ville et compte celles qui portent réellement des données — hors emprise, la carte est vide, pas moins détaillée.
+
+Détail dans [`example/README.md`](example/README.md).
+
 ## Développement
 
 ```sh
