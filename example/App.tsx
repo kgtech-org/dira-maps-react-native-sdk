@@ -13,17 +13,11 @@
  */
 import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import MapView, { Marker, Polyline, UrlTile } from 'react-native-maps';
-import {
-  DiraMapsClient,
-  RouteService,
-  diraTileTemplate,
-  toLatLng,
-  useRoute,
-} from '@kgtech-org/dira-maps-react-native';
+import { DiraMapsClient, RouteService, useRoute } from '@kgtech-org/dira-maps-react-native';
 
+import { MapPane } from './src/MapPane';
 import { CHECKS, runCheck, type CheckResult } from './src/checks';
-import { CITY, CITY_CENTER, MAPS_API_URL, TOUR } from './src/config';
+import { CITY, MAPS_API_URL, TOUR } from './src/config';
 
 const COLORS = {
   ok: '#1f7a4d',
@@ -60,34 +54,12 @@ export default function App() {
 
   return (
     <View style={styles.screen}>
-      <MapView
+      <MapPane
         style={styles.map}
-        initialRegion={{
-          latitude: CITY_CENTER[1],
-          longitude: CITY_CENTER[0],
-          latitudeDelta: 0.06,
-          longitudeDelta: 0.06,
-        }}
-      >
-        {/* Les couches Dira, EN TUILES, par-dessus le sol natif. */}
-        <UrlTile
-          urlTemplate={diraTileTemplate({ apiUrl: MAPS_API_URL, city: CITY })}
-          zIndex={1}
-          maximumZ={19}
-        />
-        <Polyline
-          coordinates={coordinates}
-          strokeColor={COLORS.line}
-          strokeWidth={4}
-          // Le repli en segments droits se voit AUSSI sur la carte, pas
-          // seulement dans un bandeau : en pointillé, il ne peut pas se faire
-          // passer pour un itinéraire.
-          lineDashPattern={approximate ? [8, 6] : undefined}
-        />
-        {TOUR.map((point, index) => (
-          <Marker key={index} coordinate={toLatLng(point)} title={`Étape ${index + 1}`} />
-        ))}
-      </MapView>
+        coordinates={coordinates}
+        approximate={approximate}
+        lineColor={COLORS.line}
+      />
 
       {approximate ? (
         <View style={[styles.banner, { backgroundColor: COLORS.warn }]}>

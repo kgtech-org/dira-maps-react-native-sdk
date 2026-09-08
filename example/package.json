@@ -10,15 +10,20 @@
     "ios": "expo start --ios",
     "check": "tsx src/cli.ts",
     "check:offline": "tsx src/cli.ts --offline",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "web": "expo start --web"
   },
   "dependencies": {
+    "@expo/metro-runtime": "~4.0.1",
     "@kgtech-org/dira-maps-react-native": "file:..",
     "expo": "~52.0.0",
+    "expo-asset": "~11.0.5",
     "expo-status-bar": "~2.0.0",
     "react": "18.3.1",
-    "react-native": "0.76.5",
-    "react-native-maps": "1.18.0"
+    "react-dom": "18.3.1",
+    "react-native": "0.76.9",
+    "react-native-maps": "1.18.0",
+    "react-native-web": "~0.19.13"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

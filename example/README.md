@@ -27,13 +27,25 @@ Sortie type :
 
 Trois états, et la nuance compte : `✓` passe, `✗` échoue (code de sortie 1), **`!` avertit sans faire échouer** — « le moteur de routage n'est pas configuré » est un état de déploiement légitime, pas une régression. Faire échouer là-dessus rendrait le banc d'essai inutilisable en développement.
 
+## Dans un navigateur
+
+```sh
+npm run web        # http://localhost:8081
+```
+
+Le diagnostic est **complet** sur le web : c'est la moitié qui répond à « ce déploiement fonctionne-t-il ? », et elle ne dépend d'aucune API native.
+
+La carte, elle, ne s'y affiche pas — et c'est cohérent avec la règle du SDK plutôt qu'une lacune : le **sol** d'une carte Dira vient du composant natif du téléphone, or un navigateur n'en a pas à prêter et le SDK n'en fournit aucun. Le volet carte affiche donc ce que le SDK sait produire ici — le tracé, ses points, leur provenance — et dit franchement ce qui manque.
+
+Les deux implémentations sont séparées **par extension de fichier** (`MapPane.tsx` / `MapPane.web.tsx`) : le bundler choisit, et `react-native-maps` n'entre jamais dans le bundle web, où son module natif échouerait à l'import.
+
 ## Sur un appareil
 
 ```sh
-npm start          # puis « a » (Android) ou « i » (iOS)
+npm start          # puis « a » (Android), « i » (iOS), ou scanner le QR code
 ```
 
-`react-native-maps` est inclus dans Expo Go : aucun *dev build* n'est nécessaire.
+`react-native-maps` est inclus dans Expo Go : aucun *dev build* n'est nécessaire. **Scanner le QR code avec un téléphone est le chemin le plus court** vers la carte complète — il n'exige ni Xcode ni émulateur.
 
 L'écran a deux moitiés. **En haut**, une carte qui montre le partage des rôles du SDK : le **sol** vient du composant natif, les couches Dira se posent dessus en tuiles, et le tracé vient de `/api/calc/route`. Voir les trois superposés vaut mieux qu'un paragraphe de documentation. **En bas**, le même diagnostic, exécuté depuis l'appareil — c'est là que se voient les choses qu'aucun émulateur ne reproduit : un réseau mobile lent, un proxy d'entreprise, un certificat refusé.
 
@@ -71,13 +83,19 @@ Les deux premières sont **distinctes** : le serveur QGIS est servi sous `/ows/`
 
 ```
 example/
-├── App.tsx           # carte + diagnostic, sur l'appareil
+├── App.tsx            # carte + diagnostic
+├── metro.config.js    # suit le lien symbolique vers le SDK du dossier parent
 ├── index.ts
 └── src/
-    ├── checks.ts     # les vérifications — SANS React ni React Native
-    ├── cli.ts        # le même diagnostic, sans interface
-    ├── config.ts     # cibles, depuis l'environnement
-    └── tile-math.ts  # [lng, lat] → z/x/y, pour savoir quelle tuile demander
+    ├── MapPane.tsx      # carte native (react-native-maps)
+    ├── MapPane.web.tsx  # son pendant web : pas de carte, et on le dit
+    ├── MapPane.types.ts # le contrat commun aux deux
+    ├── checks.ts        # les vérifications — SANS React ni React Native
+    ├── cli.ts           # le même diagnostic, sans interface
+    ├── config.ts        # cibles, depuis l'environnement
+    └── tile-math.ts     # [lng, lat] → z/x/y, pour savoir quelle tuile demander
 ```
+
+⚠️ Ne pas ajouter de `src/MapPane.ts` : il court-circuiterait le choix par plateforme et ferait entrer `react-native-maps` dans le bundle web.
 
 `checks.ts` ne dépend ni de React ni de React Native : c'est ce qui permet au même code de tourner sur l'appareil et dans un terminal. Une divergence entre les deux ferait douter des deux.
