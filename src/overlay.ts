@@ -30,6 +30,45 @@ import type { City } from './types';
  * Pour un usage soutenu, la bonne réponse est un cache de tuiles (WMTS ou XYZ)
  * devant QGIS Server, pas cet appel direct.
  */
+export interface DiraBasemapOptions {
+  /**
+   * Racine du SITE Dira Maps — `https://maps.dira.llc`. Le fond est servi par
+   * nginx sous `/basemap/`, hors de l'API : il n'a pas besoin du backend, et le
+   * cache disque est devant.
+   */
+  siteUrl: string;
+  /** Style de rendu servi par tileserver-gl. `basic-preview` est celui fourni. */
+  style?: string;
+}
+
+/**
+ * Gabarit d'URL du FOND DE CARTE Dira, auto-hébergé.
+ *
+ * À distinguer de {@link diraTileTemplate}, qui sert les couches MÉTIER de Dira
+ * (voirie, bâti, eau, occupation du sol) en surimpression. Celui-ci sert le
+ * fond OpenStreetMap complet — le sol, les étiquettes, tout — depuis
+ * l'infrastructure Dira.
+ *
+ * Deux raisons de l'utiliser plutôt qu'un fond public :
+ *
+ *  1. **La politique d'usage des tuiles d'OpenStreetMap** interdit l'usage
+ *     applicatif à volume sur ses serveurs publics. Une console interne y
+ *     échappe ; une application livreur, non.
+ *  2. **La cohérence** : le web, le back-office et le mobile regardent la même
+ *     cartographie. Sans cela, un livreur et un dispatcher voient deux villes
+ *     différentes.
+ *
+ * ⚠️ Sur mobile, ce fond ne REMPLACE pas la carte native par défaut : la plupart
+ * des composants de carte dessinent leur propre sol dessous. Le rendre visible
+ * demande de vider ce sol (`mapType="none"` sur Android) ou d'employer un
+ * composant fondé sur MapLibre, qui n'en impose aucun.
+ */
+export function diraBasemapTemplate(options: DiraBasemapOptions): string {
+  const site = options.siteUrl.replace(/\/+$/, '');
+  const style = options.style ?? 'basic-preview';
+  return `${site}/basemap/styles/${style}/{z}/{x}/{y}.png`;
+}
+
 export interface DiraTileOptions {
   /**
    * Racine de l'API Dira Maps — `https://maps.dira.llc/api`, la même que celle

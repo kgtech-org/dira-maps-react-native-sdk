@@ -47,6 +47,15 @@ En cas de doute, gardez le fond natif du téléphone : il est toujours correct, 
 
 `diraOverlayTemplate()` (WMS direct) reste pour les déploiements dont le backend ne sert pas encore `/api/tiles`. Les deux premières limites, elles, demeurent : ces couches ne font pas un fond, et l'emprise reste bornée à l'import — ≈ 13 km de côté depuis l'élargissement, contre 2,6 km auparavant.
 
+### Le fond Dira, depuis l'infrastructure Dira
+
+`diraBasemapTemplate()` rend l'URL du fond OpenStreetMap **auto-hébergé** par Dira Maps (Planetiler + tileserver-gl derrière nginx). Deux raisons de le préférer à un fond public :
+
+- La **politique d'usage des tuiles d'OpenStreetMap** interdit l'usage applicatif à volume sur ses serveurs publics. Une console interne y échappe ; une application livreur, non.
+- La **cohérence** : web, back-office et mobile regardent la même cartographie. Sans cela, un livreur et un dispatcher voient deux villes différentes.
+
+⚠️ Ce fond ne **remplace pas** la carte native par défaut : la plupart des composants dessinent leur propre sol dessous. Le rendre visible demande de vider ce sol — `mapType="none"`, **Android seulement** — ou un composant fondé sur MapLibre, qui n'en impose aucun. C'est la seule voie vers une cartographie réellement identique sur les deux plateformes.
+
 ### Le partage réel des rôles
 
 **Le sol vient de la carte native du téléphone. Dira Maps fournit ce qu'on dessine dessus.**
@@ -55,7 +64,7 @@ Ce n'est pas un pis-aller : la carte web de Dira Maps fait exactement la même c
 
 | Besoin | Qui le sert |
 |---|---|
-| Fond de carte | `expo-maps` / `react-native-maps` — **jamais** Dira Maps |
+| Fond de carte | le composant natif, ou **le fond Dira** via `diraBasemapTemplate()` |
 | Couches Dira en surimpression | **ce paquet** → `diraTileTemplate()`, avec les réserves ci-dessus |
 | Tracé routier réel | **ce paquet** → `RouteService` |
 | Adresse d'un point | **ce paquet** → `client.reverseGeocode()` |
@@ -178,7 +187,8 @@ Quand aucun moteur de routage n'est configuré côté serveur (503), `RouteServi
 | `toLatLng` · `toLngLat` · `toLatLngList` · `toLngLatList` | conversions d'ordre |
 | `isValidLngLat` | garde-fou de bornes |
 | `decodePolyline` · `encodePolyline` | polylines encodées |
-| `diraTileTemplate` | URL de tuiles `{z}/{x}/{y}` mémoïsées — **voie recommandée** |
+| `diraBasemapTemplate` | URL du **fond** OpenStreetMap auto-hébergé par Dira |
+| `diraTileTemplate` | URL des **couches métier** Dira en surimpression |
 | `diraOverlayTemplate` | URL de tuiles WMS directes, sans cache — repli |
 | `approximateRoute` · `tourKey` | repli et clé de mémorisation, exposés |
 | `DiraMapsError` | erreur typée par conduite à tenir |
