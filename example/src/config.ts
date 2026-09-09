@@ -23,6 +23,17 @@ export const CITY_CENTER: [number, number] = [
   Number(env('EXPO_PUBLIC_MAPS_LAT', '6.1319')),
 ];
 
+/**
+ * Emprunter le sol du composant natif, ou poser les tuiles Dira seules.
+ *
+ * Vrai par défaut : c'est le partage des rôles que le SDK enseigne, et le seul
+ * correct sur un vrai téléphone. Le mettre à `0` force les tuiles Dira sans
+ * aucun fond tiers — utile là où la carte native ne démarre pas (Expo Go sur
+ * Android refuse la clé Google), et pour regarder ce que Dira sert VRAIMENT,
+ * sans le sol d'un autre en dessous pour boucher les trous.
+ */
+export const NATIVE_GROUND = env('EXPO_PUBLIC_MAPS_NATIVE_GROUND', '1') !== '0';
+
 /** Une course plausible à Lomé : Tokoin → Bè, deux points distants d'environ 2 km. */
 export const TOUR: [number, number][] = [
   [1.2216, 6.1425],

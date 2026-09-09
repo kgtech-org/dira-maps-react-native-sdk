@@ -45,9 +45,25 @@ Les deux implémentations sont séparées **par extension de fichier** (`MapPane
 npm start          # puis « a » (Android), « i » (iOS), ou scanner le QR code
 ```
 
-`react-native-maps` est inclus dans Expo Go : aucun *dev build* n'est nécessaire. **Scanner le QR code avec un téléphone est le chemin le plus court** vers la carte complète — il n'exige ni Xcode ni émulateur.
+**Scanner le QR code avec un téléphone est le chemin le plus court** vers la carte complète — il n'exige ni Xcode ni émulateur.
 
-L'écran a deux moitiés. **En haut**, une carte qui montre le partage des rôles du SDK : le **sol** vient du composant natif, les couches Dira se posent dessus en tuiles, et le tracé vient de `/api/calc/route`. Voir les trois superposés vaut mieux qu'un paragraphe de documentation. **En bas**, le même diagnostic, exécuté depuis l'appareil — c'est là que se voient les choses qu'aucun émulateur ne reproduit : un réseau mobile lent, un proxy d'entreprise, un certificat refusé.
+⚠️ **Sur Android, le sol natif ne s'affiche pas dans Expo Go.** La carte de
+`react-native-maps` s'y appuie sur le SDK Google Maps, dont la clé embarquée dans Expo Go est
+refusée (`Authorization failure` dans `adb logcat`) : la surface ne démarre pas et ne demande même
+pas ses tuiles. Le voir exige un *dev build* portant votre propre clé
+(`android.config.googleMaps.apiKey`). Plutôt que d'afficher un rectangle vide qui se lirait comme
+« Dira ne renvoie rien », le volet bascule alors sur les **tuiles Dira seules** et dit pourquoi.
+
+L'écran a deux moitiés. **En haut**, une carte qui montre le partage des rôles du SDK : le **sol**
+vient du composant natif, les couches Dira se posent dessus en tuiles, et le tracé vient de
+`/api/calc/route`. Voir les trois superposés vaut mieux qu'un paragraphe de documentation. **En
+bas**, le même diagnostic, exécuté depuis l'appareil — c'est là que se voient les choses qu'aucun
+émulateur ne reproduit : un réseau mobile lent, un proxy d'entreprise, un certificat refusé.
+
+Depuis que les tuiles Dira portent le sol et l'eau (migration `0006`), elles se suffisent à faire
+une carte. `EXPO_PUBLIC_MAPS_NATIVE_GROUND=0` les affiche **seules**, sans aucun fond tiers : c'est
+la façon de regarder ce que Dira sert vraiment, sans le sol d'un autre en dessous pour boucher les
+trous.
 
 Un repli en segments droits apparaît **en pointillé** sur la carte, pas seulement dans un bandeau : ainsi il ne peut pas se faire passer pour un itinéraire.
 
@@ -76,6 +92,7 @@ La couverture du fond est la plus utile après un import : elle échantillonne u
 | `EXPO_PUBLIC_MAPS_SITE_URL` | `https://maps.dira.llc` | racine du site, pour `/ows/` |
 | `EXPO_PUBLIC_MAPS_CITY` | `lome` | ville testée |
 | `EXPO_PUBLIC_MAPS_LNG` / `_LAT` | Lomé | centre de la ville testée |
+| `EXPO_PUBLIC_MAPS_NATIVE_GROUND` | `1` | `0` = tuiles Dira seules, sans le sol du composant natif |
 
 Les deux premières sont **distinctes** : le serveur QGIS est servi sous `/ows/`, hors de l'API. Les confondre donne des 404 silencieux et une carte simplement vide.
 
@@ -89,6 +106,7 @@ example/
 └── src/
     ├── MapPane.tsx      # carte native (react-native-maps)
     ├── MapPane.web.tsx  # son pendant web : pas de carte, et on le dit
+    ├── TileGrid.tsx     # repli : les tuiles Dira posées à la main, sans Google
     ├── MapPane.types.ts # le contrat commun aux deux
     ├── checks.ts        # les vérifications — SANS React ni React Native
     ├── cli.ts           # le même diagnostic, sans interface
