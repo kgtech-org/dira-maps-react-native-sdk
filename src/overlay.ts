@@ -17,10 +17,10 @@ import type { City } from './types';
  *
  * ## Ce que ça coûte
  *
- * - **Emprise minuscule.** L'import OSM est borné à `DIRA_OSM_IMPORT_HALF`
- *   degrés autour du centre-ville, soit **≈ 2,6 km de côté** par défaut. Au
- *   delà, la surimpression est VIDE — pas moins détaillée : vide. Un livreur
- *   qui traverse Lomé sort de la zone couverte.
+ * - **Emprise bornée.** L'import OSM est limité à `DIRA_OSM_IMPORT_HALF` degrés
+ *   autour du centre-ville, soit **≈ 13 km de côté** par défaut. Au delà, la
+ *   surimpression est VIDE — pas moins détaillée : vide. C'est l'ordre de
+ *   grandeur d'une agglomération desservie, pas celui d'une région.
  * - **Rendu à la demande.** Chaque tuile est une requête PostGIS suivie d'une
  *   rasterisation par QGIS Server, sans cache devant. Une carte qu'on déplace
  *   en déclenche des dizaines.

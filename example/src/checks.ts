@@ -256,7 +256,13 @@ const tileChecks: Check[] = [
       const drawn = sizes.filter((size) => size > 1000).length;
       const detail = `${drawn}/${offsets.length} tuiles portent des données (tailles : ${sizes.join(', ')} o)`;
       if (drawn === 0) return ko(`${detail} — données non importées, ou mauvaise ville`);
-      if (drawn < offsets.length) return warn(`${detail} — emprise d'import trop étroite`);
+      // Une tuile vide n'a pas qu'une cause : sur une ville côtière — Lomé,
+      // Cotonou, Abidjan, Dakar le sont toutes — la croix échantillonne la mer,
+      // où il n'y a légitimement rien à dessiner. Affirmer « emprise trop
+      // étroite » enverrait réimporter pour rien.
+      if (drawn < offsets.length) {
+        return warn(`${detail} — emprise d'import trop étroite, ou tuile en mer`);
+      }
       return ok(detail);
     },
   },
