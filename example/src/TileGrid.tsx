@@ -14,10 +14,15 @@
  * renvoyer. Une panne muette qui accuse le mauvais coupable est exactement ce
  * que ce banc d'essai existe pour éviter.
  *
- * Depuis que les tuiles Dira portent le sol et l'eau (migration 0006), elles se
- * suffisent : sol peint, bâti, voirie, noms de rue. Les poser en `<Image>` sur
- * une grille demande la même arithmétique que celle déjà écrite pour vérifier
- * la couverture, et aucune dépendance de plus.
+ * Deux fonds y sont empilés, tous deux servis par Dira : le SOCLE
+ * OpenStreetMap auto-hébergé ({@link diraBasemapTemplate}, construit sur des
+ * pays entiers) et par-dessus les couches MÉTIER ({@link diraTileTemplate},
+ * bornées à l'emprise importée autour du centre-ville). Le premier tient la
+ * carte debout partout, le second y ajoute ce que Dira sait de la ville.
+ * Aucun tiers n'est sollicité : le fond n'est pas prêté, il est servi.
+ *
+ * Les poser en `<Image>` sur une grille demande la même arithmétique que celle
+ * déjà écrite pour vérifier la couverture, et aucune dépendance de plus.
  *
  * ## Pourquoi aucun bandeau d'avertissement
  *
@@ -31,9 +36,13 @@
 import { useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import type { LayoutChangeEvent } from 'react-native';
-import { diraTileTemplate, toLatLng } from '@kgtech-org/dira-maps-react-native';
+import {
+  diraBasemapTemplate,
+  diraTileTemplate,
+  toLatLng,
+} from '@kgtech-org/dira-maps-react-native';
 
-import { MAPS_API_URL, CITY, TOUR } from './config';
+import { CITY, MAPS_API_URL, MAPS_SITE_URL, TOUR } from './config';
 import type { MapPaneProps } from './MapPane.types';
 import { TILE_SIZE, tilePosition } from './tile-math';
 
@@ -121,7 +130,22 @@ function Grid({
 }) {
   const { width, height } = size;
   const z = fitZoom(boundsOf(coordinates), width, height);
-  const template = diraTileTemplate({ apiUrl: MAPS_API_URL, city: CITY });
+
+  // DEUX fonds empilés, et l'ordre fait tout le sens de l'écran.
+  //
+  // Dessous, le SOCLE : le fond OpenStreetMap auto-hébergé par Dira, construit
+  // à partir d'extraits Geofabrik de PAYS entiers. Dessus, les couches MÉTIER,
+  // bornées à l'emprise importée autour du centre-ville — ≈ 13 km. Sans le
+  // socle, tout ce qui dépasse cette emprise est blanc ; avec lui, la carte
+  // reste lisible jusqu'aux frontières, et ce qui vient de Dira se pose dessus.
+  //
+  // Les deux viennent de l'infrastructure Dira, aucun tiers n'est sollicité.
+  // C'est ce qui distingue ce rendu d'un emprunt à Google ou à OpenStreetMap :
+  // le fond n'est pas prêté, il est servi.
+  const layers = [
+    diraBasemapTemplate({ siteUrl: MAPS_SITE_URL }),
+    diraTileTemplate({ apiUrl: MAPS_API_URL, city: CITY }),
+  ];
 
   // Le volet se centre sur la TOURNÉE, pas sur le centre-ville : c'est le
   // trajet qu'on est venu regarder. Tant que l'itinéraire n'est pas calculé,
@@ -140,15 +164,23 @@ function Grid({
 
   const tiles: { key: string; uri: string; left: number; top: number }[] = [];
   const n = 2 ** z;
-  for (let tx = Math.floor(origin.x); tx * TILE_SIZE < origin.x * TILE_SIZE + width; tx += 1) {
-    for (let ty = Math.floor(origin.y); ty * TILE_SIZE < origin.y * TILE_SIZE + height; ty += 1) {
-      if (tx < 0 || ty < 0 || tx >= n || ty >= n) continue;
-      tiles.push({
-        key: `${z}/${tx}/${ty}`,
-        uri: template.replace('{z}', String(z)).replace('{x}', String(tx)).replace('{y}', String(ty)),
-        left: (tx - origin.x) * TILE_SIZE,
-        top: (ty - origin.y) * TILE_SIZE,
-      });
+  // L'ordre d'empilement est celui de `layers` : React rend dans l'ordre, et
+  // une vue absolue plus tardive passe au-dessus. Inverser peindrait le socle
+  // par-dessus les rues de Dira et les effacerait.
+  for (const template of layers) {
+    for (let tx = Math.floor(origin.x); tx * TILE_SIZE < origin.x * TILE_SIZE + width; tx += 1) {
+      for (let ty = Math.floor(origin.y); ty * TILE_SIZE < origin.y * TILE_SIZE + height; ty += 1) {
+        if (tx < 0 || ty < 0 || tx >= n || ty >= n) continue;
+        tiles.push({
+          key: `${template}|${z}/${tx}/${ty}`,
+          uri: template
+            .replace('{z}', String(z))
+            .replace('{x}', String(tx))
+            .replace('{y}', String(ty)),
+          left: (tx - origin.x) * TILE_SIZE,
+          top: (ty - origin.y) * TILE_SIZE,
+        });
+      }
     }
   }
 
