@@ -52,7 +52,13 @@ npm start          # puis « a » (Android), « i » (iOS), ou scanner le QR cod
 refusée (`Authorization failure` dans `adb logcat`) : la surface ne démarre pas et ne demande même
 pas ses tuiles. Le voir exige un *dev build* portant votre propre clé
 (`android.config.googleMaps.apiKey`). Plutôt que d'afficher un rectangle vide qui se lirait comme
-« Dira ne renvoie rien », le volet bascule alors sur les **tuiles Dira seules** et dit pourquoi.
+« Dira ne renvoie rien », le volet bascule alors sur les **tuiles Dira seules**.
+
+Ce repli ne porte aucun bandeau : la carte s'affiche vraiment, et la seule limite qui compte —
+**hors de l'emprise importée, elle est blanche** — est déjà mesurée et chiffrée par la vérification
+« Couverture du fond », juste en dessous. La dire deux fois l'aurait affaiblie. Ce qu'on perd
+vraiment sans le sol natif : l'emprise mondiale, le déplacement et le zoom, et la fraîcheur d'une
+cartographie mise à jour en continu.
 
 L'écran a deux moitiés. **En haut**, une carte qui montre le partage des rôles du SDK : le **sol**
 vient du composant natif, les couches Dira se posent dessus en tuiles, et le tracé vient de

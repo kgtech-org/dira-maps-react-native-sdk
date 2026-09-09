@@ -18,13 +18,22 @@
  * suffisent : sol peint, bâti, voirie, noms de rue. Les poser en `<Image>` sur
  * une grille demande la même arithmétique que celle déjà écrite pour vérifier
  * la couverture, et aucune dépendance de plus.
+ *
+ * ## Pourquoi aucun bandeau d'avertissement
+ *
+ * Il y en a eu un, tant que ce volet servait à excuser un rectangle vide. Une
+ * carte qui s'affiche n'a plus rien à excuser, et la seule limite qui compte —
+ * hors de l'emprise importée, elle est BLANCHE — est déjà mesurée, chiffrée et
+ * expliquée par la vérification « Couverture du fond », trois centimètres plus
+ * bas. Un avertissement permanent posé par-dessus la carte l'aurait répétée en
+ * moins précis, et aurait fini par ne plus être lu.
  */
 import { useState } from 'react';
-import { Image, Platform, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import type { LayoutChangeEvent } from 'react-native';
 import { diraTileTemplate, toLatLng } from '@kgtech-org/dira-maps-react-native';
 
-import { CITY, MAPS_API_URL, TOUR } from './config';
+import { MAPS_API_URL, CITY, TOUR } from './config';
 import type { MapPaneProps } from './MapPane.types';
 import { TILE_SIZE, tilePosition } from './tile-math';
 
@@ -86,10 +95,6 @@ function thin<T>(points: T[], max: number): T[] {
 
 export function TileGrid({ coordinates, approximate, style, lineColor }: MapPaneProps) {
   const [size, setSize] = useState<{ width: number; height: number } | null>(null);
-  // Le bandeau est MESURÉ, pas estimé : sa hauteur dépend de la barre d'état de
-  // l'appareil et du repli du texte. Une constante devinée cacherait la
-  // première étape de la tournée sur un écran étroit.
-  const [bannerHeight, setBannerHeight] = useState(0);
 
   const onLayout = (event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
@@ -98,38 +103,23 @@ export function TileGrid({ coordinates, approximate, style, lineColor }: MapPane
 
   return (
     <View style={[style, styles.pane]} onLayout={onLayout}>
-      {size ? <Grid {...{ size, topInset: bannerHeight, coordinates, approximate, lineColor }} /> : null}
-      <View
-        style={styles.banner}
-        onLayout={(event) => setBannerHeight(event.nativeEvent.layout.height)}
-      >
-        <Text style={styles.bannerTitle}>Sol natif indisponible — tuiles Dira seules</Text>
-        <Text style={styles.bannerBody}>
-          Le SDK Google Maps refuse la clé d’Expo Go sur Android : la carte native ne démarre pas et
-          ne demande aucune tuile. Ce qui suit vient donc entièrement de {MAPS_API_URL} · {CITY}.
-        </Text>
-      </View>
+      {size ? <Grid {...{ size, coordinates, approximate, lineColor }} /> : null}
     </View>
   );
 }
 
 function Grid({
   size,
-  topInset,
   coordinates,
   approximate,
   lineColor,
 }: {
   size: { width: number; height: number };
-  topInset: number;
   coordinates: MapPaneProps['coordinates'];
   approximate: boolean;
   lineColor: string;
 }) {
-  const { width } = size;
-  // On cadre sur ce qui se VOIT : le bandeau mange le haut du volet, et une
-  // tournée centrée sur toute la hauteur y disparaîtrait par le haut.
-  const height = Math.max(size.height - topInset, size.height / 2);
+  const { width, height } = size;
   const z = fitZoom(boundsOf(coordinates), width, height);
   const template = diraTileTemplate({ apiUrl: MAPS_API_URL, city: CITY });
 
@@ -140,7 +130,7 @@ function Grid({
   const centre = tilePosition((west + east) / 2, (south + north) / 2, z);
   const origin = {
     x: centre.x - width / 2 / TILE_SIZE,
-    y: centre.y - (topInset + height / 2) / TILE_SIZE,
+    y: centre.y - height / 2 / TILE_SIZE,
   };
 
   const project = (lng: number, lat: number): Point => {
@@ -151,7 +141,7 @@ function Grid({
   const tiles: { key: string; uri: string; left: number; top: number }[] = [];
   const n = 2 ** z;
   for (let tx = Math.floor(origin.x); tx * TILE_SIZE < origin.x * TILE_SIZE + width; tx += 1) {
-    for (let ty = Math.floor(origin.y); ty * TILE_SIZE < origin.y * TILE_SIZE + size.height; ty += 1) {
+    for (let ty = Math.floor(origin.y); ty * TILE_SIZE < origin.y * TILE_SIZE + height; ty += 1) {
       if (tx < 0 || ty < 0 || tx >= n || ty >= n) continue;
       tiles.push({
         key: `${z}/${tx}/${ty}`,
@@ -260,18 +250,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   markerLabel: { color: '#ffffff', fontSize: 11, fontWeight: '700' },
-  banner: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    paddingHorizontal: 14,
-    paddingBottom: 10,
-    // Le volet occupe le haut de l'écran, barre d'état comprise : sans cette
-    // marge, l'heure et les icônes du système traversent la première ligne.
-    paddingTop: 10 + (Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0),
-    backgroundColor: 'rgba(22,22,26,0.82)',
-  },
-  bannerTitle: { color: '#ffffff', fontSize: 13, fontWeight: '700' },
-  bannerBody: { color: '#d8d6d2', fontSize: 11, lineHeight: 15, marginTop: 3 },
 });
