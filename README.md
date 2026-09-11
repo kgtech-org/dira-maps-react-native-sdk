@@ -60,7 +60,7 @@ En cas de doute, gardez le fond natif du téléphone : il est toujours correct, 
 
 **Le sol vient de la carte native du téléphone. Dira Maps fournit ce qu'on dessine dessus.**
 
-Ce n'est pas un pis-aller : la carte web de Dira Maps fait exactement la même chose — elle pose ses données sur des tuiles OpenStreetMap. Son serveur QGIS publie des **couches thématiques par ville** (`dira_lome`, `dira_cotonou`, `dira_abidjan`, `dira_dakar`), jamais un fond de carte. Une application native avec le fond du système et le tracé de Dira Maps par-dessus **est** la carte Dira, dans la forme qui convient à un téléphone.
+Ce n'est pas un pis-aller : la carte web de Dira Maps fait exactement la même chose — elle pose ses données sur des tuiles OpenStreetMap. Son serveur QGIS publie des **couches thématiques par ville** (`dira_dakar`, `dira_lome`, `dira_conakry`), jamais un fond de carte. Une application native avec le fond du système et le tracé de Dira Maps par-dessus **est** la carte Dira, dans la forme qui convient à un téléphone.
 
 | Besoin | Qui le sert |
 |---|---|
