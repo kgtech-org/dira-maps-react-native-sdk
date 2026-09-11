@@ -41,7 +41,7 @@ src/
 ## Invariants
 
 - **`[lng, lat]` sur le fil, `{ latitude, longitude }` sur la carte.** Toute inversion passe par `coords.ts`. À Lomé (1.22 E, 6.14 N) une inversion est indétectable à l'œil et place le point au large de la Somalie : les deux types sont distincts pour que le compilateur la refuse.
-- **`city` vient de l'API métier** (`delivery.city`), jamais d'une déduction locale. Les codes sont ceux des projets QGIS de Dira Maps : `lome`, `cotonou`, `abidjan`, `dakar`.
+- **`city` vient de l'API métier** (`delivery.city`), jamais d'une déduction locale. Les codes sont ceux des projets QGIS de Dira Maps : `dakar`, `lome`, `conakry`.
 - **Un repli est toujours signalé** (`approximate: true`). Une ligne droite présentée comme un itinéraire ferait rouler quelqu'un dans un mur.
 - **Une requête par tournée**, pas par position GPS. Les échecs ne sont pas mémorisés.
 - **`lon` et non `lng`** sur `/geocode/reverse` — seule exception de la plateforme, normalisée par le client.

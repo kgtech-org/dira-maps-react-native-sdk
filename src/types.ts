@@ -24,7 +24,7 @@ export interface LatLng {
  * sert ce code sur la course (`delivery.city`) : le prendre de là plutôt que
  * de le déduire des coordonnées.
  */
-export type City = 'lome' | 'cotonou' | 'abidjan' | 'dakar';
+export type City = 'dakar' | 'lome' | 'conakry';
 
 /** Modes de déplacement acceptés par le moteur de routage. */
 export type TravelMode = 'driving' | 'walking' | 'cycling';
