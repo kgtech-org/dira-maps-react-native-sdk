@@ -73,6 +73,9 @@ Ce n'est pas un pis-aller : la carte web de Dira Maps fait exactement la même c
 
 ---
 
+> **Vous intégrez Dira Maps dans une application React Native ?** Une spec pas à pas, écrite pour
+> être donnée à Claude Code : [`docs/integration-react-native.md`](docs/integration-react-native.md).
+
 ## Installation
 
 Deux voies. Les versions publiées sont listées dans [CHANGELOG.md](CHANGELOG.md).
