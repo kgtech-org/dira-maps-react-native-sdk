@@ -85,8 +85,12 @@ Un repli en segments droits apparaît **en pointillé** sur la carte, pas seulem
 | Géocodage inverse / recherche | pas d'adresse lisible sur un point |
 | Tuiles mémoïsées | QGIS rastérise à chaque déplacement de carte |
 | **Couverture du fond** | **hors emprise, la carte est vide — pas moins détaillée : vide** |
-| Surimpression WMS | le repli est indisponible |
+| Surimpression WMS | le repli est indisponible — au plus un avertissement, jamais un échec |
 | Erreurs typées | on réessaie une panne qu'il fallait contourner, ou l'inverse |
+
+Les tuiles mémoïsées sont demandées avec un paramètre de requête unique : un CDN devant le site (Cloudflare devant `maps.dira.llc`) resservirait sinon, avec l'image, l'en-tête `X-Dira-Cache` de la première réponse, et accuserait Redis à tort. Le backend ignore ce paramètre et retrouve sa clé z/x/y.
+
+La surimpression WMS ne produit jamais qu'un avertissement : c'est un repli, et un déploiement peut légitimement ne pas exposer `/ows/` (c'est le choix de `dira-devops`, un WMS ouvert exposant le SIG). Le chemin nominal, `/api/tiles`, a sa propre vérification — c'est elle qui passe au rouge.
 
 La couverture du fond est la plus utile après un import : elle échantillonne une croix de tuiles autour du centre-ville et compte celles qui portent des données. L'heuristique est assumée — une tuile sans donnée est un PNG transparent, donc minuscule — et ne prétend pas mesurer la richesse du rendu, seulement distinguer « il y a quelque chose » de « il n'y a rien ».
 

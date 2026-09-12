@@ -195,6 +195,18 @@ async function fetchTile(url: string): Promise<{ bytes: Uint8Array; cache: strin
   return { bytes, cache: response.headers.get('x-dira-cache') };
 }
 
+/**
+ * Un CDN devant le site (Cloudflare sur maps.dira.llc) met les PNG en cache et
+ * resert, avec l'image, l'en-tête `X-Dira-Cache: miss` de la PREMIÈRE réponse :
+ * lu tel quel, il accuserait Redis à tort. Une valeur de requête unique force
+ * le CDN à passer la main ; le backend, lui, ignore le paramètre et retrouve sa
+ * clé z/x/y — c'est bien sa mémoïsation qu'on observe, pas celle du CDN.
+ */
+function bypassEdgeCache(url: string): string {
+  const nonce = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+  return `${url}${url.includes('?') ? '&' : '?'}nocdn=${nonce}`;
+}
+
 const tileChecks: Check[] = [
   {
     id: 'tiles',
@@ -207,9 +219,9 @@ const tileChecks: Check[] = [
         .replace('{z}', '14')
         .replace('{x}', String(x))
         .replace('{y}', String(y));
-      const first = await fetchTile(url);
+      const first = await fetchTile(bypassEdgeCache(url));
       if (!isPng(first.bytes)) return ko(`la réponse n'est pas un PNG (${first.bytes.length} o)`);
-      const second = await fetchTile(url);
+      const second = await fetchTile(bypassEdgeCache(url));
       const cached = second.cache === 'hit';
       return cached
         ? ok(`PNG de ${first.bytes.length} o ; deuxième demande servie par le cache`)
@@ -269,8 +281,13 @@ const tileChecks: Check[] = [
   {
     id: 'overlay-wms',
     title: 'Surimpression WMS (repli)',
-    stake: "Chemin de repli quand le backend ne sert pas encore /api/tiles.",
+    stake:
+      'Chemin de repli quand le backend ne sert pas encore /api/tiles. ' +
+      "Un déploiement peut légitimement ne pas l'exposer : jamais bloquant.",
     network: true,
+    // Cette vérification ne produit JAMAIS d'échec : c'est un repli, et le
+    // chemin nominal (/api/tiles) a sa propre vérification, qui elle passe au
+    // rouge. Un `ko` ici ferait échouer le banc d'essai sur un déploiement sain.
     run: async () => {
       const url = diraOverlayTemplate({ siteUrl: MAPS_SITE_URL, city: CITY })
         .replace('{minX}', '135000')
@@ -280,10 +297,20 @@ const tileChecks: Check[] = [
       const response = await fetch(url);
       if (!response.ok) return warn(`HTTP ${response.status} — /ows/ non exposé, ce qui est sain`);
       const type = response.headers.get('content-type') ?? '';
-      if (!type.startsWith('image/')) {
-        return ko(`QGIS a rendu ${type} au lieu d'une image (probable exception WMS)`);
+      if (type.startsWith('image/')) return ok(`image servie directement par QGIS Server (${type})`);
+      // Deux façons de ne pas recevoir une image, à ne pas confondre :
+      // - du HTML : l'edge ne route pas /ows/, la requête est tombée sur la page
+      //   du client web. C'est le choix de production de dira-devops — un WMS
+      //   ouvert, c'est le SIG exposé à l'internet — pas une panne ;
+      // - autre chose (du XML) : /ows/ est routé mais QGIS a répondu une
+      //   exception. Un défaut, mais sur le repli seulement.
+      if (type.startsWith('text/html')) {
+        return warn(
+          "/ows/ non exposé par l'edge (page du client web reçue) — sain en production, " +
+            '/api/tiles est le chemin nominal',
+        );
       }
-      return ok(`image servie directement par QGIS Server (${type})`);
+      return warn(`QGIS a rendu ${type} au lieu d'une image (probable exception WMS) — repli indisponible`);
     },
   },
 ];
