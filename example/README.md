@@ -99,6 +99,7 @@ La couverture du fond est la plus utile après un import : elle échantillonne u
 | Variable | Défaut | Rôle |
 |---|---|---|
 | `EXPO_PUBLIC_MAPS_URL` | `https://maps.dira.llc/api` | racine de l'API |
+| `EXPO_PUBLIC_MAPS_API_KEY` | *(vide)* | clé API de l'application (portail Dira Maps) ; vide = appels anonymes |
 | `EXPO_PUBLIC_MAPS_SITE_URL` | `https://maps.dira.llc` | racine du site, pour `/ows/` |
 | `EXPO_PUBLIC_MAPS_CITY` | `lome` | ville testée |
 | `EXPO_PUBLIC_MAPS_LNG` / `_LAT` | Lomé | centre de la ville testée |

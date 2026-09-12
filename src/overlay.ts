@@ -39,6 +39,15 @@ export interface DiraBasemapOptions {
   siteUrl: string;
   /** Style de rendu servi par tileserver-gl. `basic-preview` est celui fourni. */
   style?: string;
+  /** Clé API de l'application, ajoutée en `?key=` — un gabarit n'a pas d'en-têtes. */
+  apiKey?: string;
+}
+
+/** Ajoute `key=` à une URL ou un gabarit, avec `?` ou `&` selon ce qu'il porte déjà. */
+function withKey(url: string, apiKey: string | undefined): string {
+  const key = apiKey?.trim();
+  if (!key) return url;
+  return `${url}${url.includes('?') ? '&' : '?'}key=${encodeURIComponent(key)}`;
 }
 
 /**
@@ -66,7 +75,28 @@ export interface DiraBasemapOptions {
 export function diraBasemapTemplate(options: DiraBasemapOptions): string {
   const site = options.siteUrl.replace(/\/+$/, '');
   const style = options.style ?? 'basic-preview';
-  return `${site}/basemap/styles/${style}/{z}/{x}/{y}.png`;
+  return withKey(`${site}/basemap/styles/${style}/{z}/{x}/{y}.png`, options.apiKey);
+}
+
+export interface DiraStyleOptions {
+  /** Racine du SITE Dira Maps — `https://maps.dira.llc`. */
+  siteUrl: string;
+  /** La clé API : le style est le sien, aux couleurs du thème de l'application. */
+  apiKey: string;
+}
+
+/**
+ * URL du style MapLibre de l'application — le fond de carte aux couleurs de son
+ * thème, tel que réglé dans le portail Dira Maps.
+ *
+ * S'adresse aux composants qui rendent en vecteur (MapLibre, sur web ou en
+ * React Native via `@maplibre/maplibre-react-native`). Un composant à fond
+ * natif (react-native-maps) ne sait pas l'appliquer : pour lui, le thème n'a
+ * pas d'effet et {@link diraBasemapTemplate} reste la voie.
+ */
+export function diraStyleUrl(options: DiraStyleOptions): string {
+  const site = options.siteUrl.replace(/\/+$/, '');
+  return `${site}/api/styles/${encodeURIComponent(options.apiKey.trim())}.json`;
 }
 
 export interface DiraTileOptions {
@@ -77,6 +107,8 @@ export interface DiraTileOptions {
    */
   apiUrl: string;
   city: City | string;
+  /** Clé API de l'application, ajoutée en `?key=` — un gabarit n'a pas d'en-têtes. */
+  apiKey?: string;
 }
 
 /**
@@ -97,7 +129,7 @@ export interface DiraTileOptions {
  */
 export function diraTileTemplate(options: DiraTileOptions): string {
   const api = options.apiUrl.replace(/\/+$/, '');
-  return `${api}/tiles/${options.city}/{z}/{x}/{y}.png`;
+  return withKey(`${api}/tiles/${options.city}/{z}/{x}/{y}.png`, options.apiKey);
 }
 
 export interface DiraOverlayOptions {

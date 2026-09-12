@@ -125,7 +125,10 @@ Le paquet est du **CommonJS** : Metro le charge sans configuration. Il n'utilise
 ```tsx
 import { DiraMapsClient, RouteService, toLatLng, useRoute } from '@kgtech-org/dira-maps-react-native'
 
-const client = new DiraMapsClient({ baseUrl: process.env.EXPO_PUBLIC_MAPS_URL! })
+const client = new DiraMapsClient({
+  baseUrl: process.env.EXPO_PUBLIC_MAPS_URL!,
+  apiKey: process.env.EXPO_PUBLIC_MAPS_API_KEY, // clé de l'application, créée dans le portail Dira Maps
+})
 const routes = new RouteService(client)
 
 function DeliveryMap({ delivery }) {
@@ -148,6 +151,24 @@ function DeliveryMap({ delivery }) {
 ```
 
 `baseUrl` pointe la racine de l'API, par exemple `https://maps.dira.llc/api`. Elle doit être **configurable indépendamment** de l'API métier et du service de suivi : ce sont trois services déployables séparément.
+
+### Clé API
+
+Chaque application Dira a un **compte** dans le portail Dira Maps (`/admin/`) et y crée ses clés
+(`dira_live_…`). Le SDK l'envoie en `X-Api-Key` ; les gabarits de tuiles et de fond l'ajoutent en
+`?key=` (un gabarit n'a pas d'en-têtes) :
+
+```ts
+diraTileTemplate({ apiUrl, city, apiKey })
+diraBasemapTemplate({ siteUrl, apiKey })
+diraStyleUrl({ siteUrl, apiKey })   // le fond aux couleurs du thème de l'application (MapLibre)
+```
+
+Tant que Dira Maps accepte les appels anonymes, la clé est optionnelle — mais chaque appel sans
+clé est compté comme tel dans la console, et c'est ce compteur qui décidera de la bascule. Une fois
+la clé obligatoire, un client sans clé reçoit une `DiraMapsError` de kind **`auth`** ; un quota
+journalier atteint donne **`quota`**, avec `retryAfterS`. Ni l'un ni l'autre ne justifie un repli en
+segments droits : ce sont des configurations à corriger, pas des pannes.
 
 ## Ce que le paquet prend en charge pour vous
 
