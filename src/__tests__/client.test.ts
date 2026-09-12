@@ -84,6 +84,51 @@ describe('DiraMapsClient.route', () => {
   });
 });
 
+describe('DiraMapsClient — clé API', () => {
+  const tour = { city: 'lome', coordinates: [[1.22, 6.14], [1.23, 6.13]] as [number, number][] };
+
+  it('envoie la clé en X-Api-Key sur chaque appel, et rien sans clé', async () => {
+    const fetchImpl = vi.fn(async () => json(ROUTE_BODY)) as unknown as typeof fetch;
+    await new DiraMapsClient({
+      baseUrl: 'https://maps.dira.llc/api',
+      apiKey: 'dira_live_abc',
+      fetch: fetchImpl,
+    }).route(tour);
+    const init = (fetchImpl as unknown as { mock: { calls: [string, RequestInit][] } }).mock
+      .calls[0]![1];
+    expect(new Headers(init.headers).get('X-Api-Key')).toBe('dira_live_abc');
+    // Le Content-Type du POST n'a pas été perdu en ajoutant l'en-tête.
+    expect(new Headers(init.headers).get('Content-Type')).toBe('application/json');
+
+    await clientWith(fetchImpl).route(tour);
+    const sans = (fetchImpl as unknown as { mock: { calls: [string, RequestInit][] } }).mock
+      .calls[1]![1];
+    expect(new Headers(sans.headers).get('X-Api-Key')).toBeNull();
+  });
+
+  it('classe 401 et 403 comme « auth » : une configuration à corriger, pas à réessayer', async () => {
+    for (const status of [401, 403]) {
+      const fetchImpl = vi.fn(async () => json({ detail: 'x' }, status)) as unknown as typeof fetch;
+      const error = await captureError(clientWith(fetchImpl).route(tour));
+      expect(error.kind).toBe('auth');
+      expect(error.shouldFallBackToStraightLines).toBe(false);
+    }
+  });
+
+  it('classe 429 comme « quota » et rapporte quand réessayer', async () => {
+    const fetchImpl = vi.fn(
+      async () =>
+        new Response('{}', {
+          status: 429,
+          headers: { 'Content-Type': 'application/json', 'Retry-After': '3600' },
+        }),
+    ) as unknown as typeof fetch;
+    const error = await captureError(clientWith(fetchImpl).route(tour));
+    expect(error.kind).toBe('quota');
+    expect(error.retryAfterS).toBe(3600);
+  });
+});
+
 describe('DiraMapsClient.reverseGeocode', () => {
   // Seul endroit de la plateforme où le paramètre s'appelle `lon` : le client
   // normalise pour que les appelants écrivent `lng` partout.

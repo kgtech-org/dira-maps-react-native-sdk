@@ -20,7 +20,7 @@ import {
   tourKey,
 } from '@kgtech-org/dira-maps-react-native';
 
-import { CITY, CITY_CENTER, MAPS_API_URL, MAPS_SITE_URL, TOUR } from './config';
+import { CITY, CITY_CENTER, MAPS_API_KEY, MAPS_API_URL, MAPS_SITE_URL, TOUR } from './config';
 import { tileForLngLat } from './tile-math';
 
 export type CheckStatus = 'ok' | 'ko' | 'warn';
@@ -41,7 +41,7 @@ export interface Check {
   run: () => Promise<CheckResult>;
 }
 
-const client = new DiraMapsClient({ baseUrl: MAPS_API_URL });
+const client = new DiraMapsClient({ baseUrl: MAPS_API_URL, apiKey: MAPS_API_KEY });
 const routes = new RouteService(client);
 
 const ok = (detail: string): CheckResult => ({ status: 'ok', detail });
@@ -215,7 +215,7 @@ const tileChecks: Check[] = [
     network: true,
     run: async () => {
       const { x, y } = tileForLngLat(CITY_CENTER[0], CITY_CENTER[1], 14);
-      const url = diraTileTemplate({ apiUrl: MAPS_API_URL, city: CITY })
+      const url = diraTileTemplate({ apiUrl: MAPS_API_URL, city: CITY, apiKey: MAPS_API_KEY })
         .replace('{z}', '14')
         .replace('{x}', String(x))
         .replace('{y}', String(y));
@@ -249,7 +249,7 @@ const tileChecks: Check[] = [
         [0, 3],
         [0, -3],
       ];
-      const template = diraTileTemplate({ apiUrl: MAPS_API_URL, city: CITY });
+      const template = diraTileTemplate({ apiUrl: MAPS_API_URL, city: CITY, apiKey: MAPS_API_KEY });
       const sizes: number[] = [];
       for (const [dx, dy] of offsets) {
         const url = template

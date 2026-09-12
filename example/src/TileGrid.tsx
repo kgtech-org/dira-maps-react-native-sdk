@@ -42,7 +42,7 @@ import {
   toLatLng,
 } from '@kgtech-org/dira-maps-react-native';
 
-import { CITY, MAPS_API_URL, MAPS_SITE_URL, TOUR } from './config';
+import { CITY, MAPS_API_KEY, MAPS_API_URL, MAPS_SITE_URL, TOUR } from './config';
 import type { MapPaneProps } from './MapPane.types';
 import { TILE_SIZE, tilePosition } from './tile-math';
 
@@ -143,8 +143,8 @@ function Grid({
   // C'est ce qui distingue ce rendu d'un emprunt à Google ou à OpenStreetMap :
   // le fond n'est pas prêté, il est servi.
   const layers = [
-    diraBasemapTemplate({ siteUrl: MAPS_SITE_URL }),
-    diraTileTemplate({ apiUrl: MAPS_API_URL, city: CITY }),
+    diraBasemapTemplate({ siteUrl: MAPS_SITE_URL, apiKey: MAPS_API_KEY }),
+    diraTileTemplate({ apiUrl: MAPS_API_URL, city: CITY, apiKey: MAPS_API_KEY }),
   ];
 
   // Le volet se centre sur la TOURNÉE, pas sur le centre-ville : c'est le

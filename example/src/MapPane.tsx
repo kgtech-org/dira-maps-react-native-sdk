@@ -29,7 +29,7 @@ import { Platform } from 'react-native';
 import MapView, { Marker, Polyline, UrlTile } from 'react-native-maps';
 import { diraTileTemplate, toLatLng } from '@kgtech-org/dira-maps-react-native';
 
-import { CITY, CITY_CENTER, MAPS_API_URL, NATIVE_GROUND, TOUR } from './config';
+import { CITY, CITY_CENTER, MAPS_API_KEY, MAPS_API_URL, NATIVE_GROUND, TOUR } from './config';
 import type { MapPaneProps } from './MapPane.types';
 import { TileGrid } from './TileGrid';
 
@@ -61,7 +61,7 @@ export function MapPane(props: MapPaneProps) {
     >
       {/* Les couches Dira, EN TUILES, par-dessus le sol natif. */}
       <UrlTile
-        urlTemplate={diraTileTemplate({ apiUrl: MAPS_API_URL, city: CITY })}
+        urlTemplate={diraTileTemplate({ apiUrl: MAPS_API_URL, city: CITY, apiKey: MAPS_API_KEY })}
         zIndex={1}
         maximumZ={19}
       />
