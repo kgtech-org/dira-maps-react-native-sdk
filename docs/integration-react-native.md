@@ -78,12 +78,11 @@ configuration.
 
 npm install @kgtech-org/dira-maps-react-native
 # ou, sans jeton, en épinglant un tag (le dernier : voir CHANGELOG.md du SDK) :
-npm install github:kgtech-org/dira-maps-react-native-sdk#v0.2.0
+npm install github:kgtech-org/dira-maps-react-native-sdk#v0.3.0
 ```
 
-> `apiKey`, `diraStyleUrl` et les erreurs `auth`/`quota` arrivent avec **v0.3.0** (PR #4 du SDK).
-> Avec v0.2.0, ces options n'existent simplement pas : tout le reste de cette spec s'applique, et
-> la clé étant optionnelle côté serveur pendant la transition, rien ne bloque.
+> `apiKey`, `diraStyleUrl` et les erreurs `auth`/`quota` existent depuis **v0.3.0**. Ne pas
+> épingler une version antérieure.
 
 `react-native-maps` doit déjà être installé et fonctionner (une `<MapView>` vide s'affiche). Si ce
 n'est pas le cas, c'est un problème de l'app, pas de Dira Maps : le régler d'abord.
