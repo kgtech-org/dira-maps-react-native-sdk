@@ -1,0 +1,47 @@
+# Intégration continue du SDK : ce qui doit être vert avant de fusionner.
+#
+# Deux jobs indépendants. Le SDK n'a aucune dépendance à l'exécution ni
+# module natif : ses tests sont du TypeScript pur et tournent sans appareil.
+# L'exemple est compilé (types) et son banc d'essai lancé HORS LIGNE — les
+# vérifications pures seulement : la CI ne doit pas dépendre de
+# maps.dira.llc, et un déploiement cassé n'est pas une régression du SDK.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  sdk:
+    name: SDK (typecheck + tests + build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  example:
+    name: Exemple (typecheck + banc d'essai hors ligne)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # `file:..` : l'exemple consomme le SDK compilé depuis ce dépôt, comme
+      # une application le ferait depuis le paquet.
+      - run: npm ci
+      - run: npm run build
+      - run: npm ci
+        working-directory: example
+      - run: npm run typecheck
+        working-directory: example
+      - run: npm run check:offline
+        working-directory: example
