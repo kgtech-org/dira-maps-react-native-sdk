@@ -11,6 +11,13 @@ const env = (key: string, fallback: string): string =>
 /** Racine de l'API Dira Maps — `/api` compris. */
 export const MAPS_API_URL = env('EXPO_PUBLIC_MAPS_URL', 'https://maps.dira.llc/api');
 
+/**
+ * Clé API de l'application, créée dans le portail Dira Maps (`/admin/`).
+ * Vide : appels anonymes — acceptés tant que Dira Maps ne rend pas la clé
+ * obligatoire, et comptés comme tels dans la console.
+ */
+export const MAPS_API_KEY = env('EXPO_PUBLIC_MAPS_API_KEY', '') || undefined;
+
 /** Racine du SITE, pour le WMS direct (`/ows/`), hors de l'API. */
 export const MAPS_SITE_URL = env('EXPO_PUBLIC_MAPS_SITE_URL', 'https://maps.dira.llc');
 

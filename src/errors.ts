@@ -15,7 +15,18 @@ export type DiraMapsErrorKind =
    * réessayer en boucle — se replier sur des segments droits ET le dire.
    */
   | 'routing_unavailable'
-  /** 4xx : requête refusée telle quelle. Corriger l'appel. */
+  /**
+   * 401 / 403 : clé API absente, inconnue, révoquée, ou service désactivé pour
+   * elle. Réessayer ne changera rien : c'est une configuration à corriger,
+   * dans l'application ou dans le portail Dira Maps.
+   */
+  | 'auth'
+  /**
+   * 429 : quota journalier de la clé atteint. Le serveur dit quand réessayer
+   * (`retryAfterS`) ; d'ici là, se replier ou attendre, pas insister.
+   */
+  | 'quota'
+  /** 4xx autres : requête refusée telle quelle. Corriger l'appel. */
   | 'request'
   /** 5xx autres, ou réponse illisible. */
   | 'server';
@@ -23,12 +34,15 @@ export type DiraMapsErrorKind =
 export class DiraMapsError extends Error {
   readonly kind: DiraMapsErrorKind;
   readonly status?: number;
+  /** Pour `quota` : secondes à attendre avant de réessayer, si le serveur l'a dit. */
+  readonly retryAfterS?: number;
 
-  constructor(kind: DiraMapsErrorKind, message: string, status?: number) {
+  constructor(kind: DiraMapsErrorKind, message: string, status?: number, retryAfterS?: number) {
     super(message);
     this.name = 'DiraMapsError';
     this.kind = kind;
     if (status !== undefined) this.status = status;
+    if (retryAfterS !== undefined) this.retryAfterS = retryAfterS;
   }
 
   /**

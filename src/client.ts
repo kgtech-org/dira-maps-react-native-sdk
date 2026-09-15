@@ -12,6 +12,14 @@ export interface DiraMapsClientOptions {
   baseUrl: string;
   /** Délai maximal par requête. 8 s par défaut (réseaux mobiles lents). */
   timeoutMs?: number;
+  /**
+   * Clé API de l'application (`dira_live_…`), créée dans le portail Dira Maps.
+   *
+   * Envoyée en `X-Api-Key`. Optionnelle tant que Dira Maps accepte les appels
+   * anonymes ; une fois la clé rendue obligatoire côté serveur, un client sans
+   * clé reçoit une `DiraMapsError` de kind `auth` sur chaque appel.
+   */
+  apiKey?: string;
   /** Injection pour les tests ; `globalThis.fetch` par défaut. */
   fetch?: typeof fetch;
 }
@@ -28,11 +36,13 @@ export interface DiraMapsClientOptions {
 export class DiraMapsClient {
   private readonly baseUrl: string;
   private readonly timeoutMs: number;
+  private readonly apiKey: string | undefined;
   private readonly doFetch: typeof fetch;
 
   constructor(options: DiraMapsClientOptions) {
     this.baseUrl = options.baseUrl.replace(/\/+$/, '');
     this.timeoutMs = options.timeoutMs ?? 8_000;
+    this.apiKey = options.apiKey?.trim() || undefined;
     const injected = options.fetch ?? globalThis.fetch;
     if (!injected) {
       throw new Error('DiraMapsClient: aucun fetch disponible, en fournir un');
@@ -117,7 +127,13 @@ export class DiraMapsClient {
 
     let response: Response;
     try {
-      response = await this.doFetch(this.baseUrl + path, { ...init, signal: controller.signal });
+      const headers = new Headers(init.headers);
+      if (this.apiKey) headers.set('X-Api-Key', this.apiKey);
+      response = await this.doFetch(this.baseUrl + path, {
+        ...init,
+        headers,
+        signal: controller.signal,
+      });
     } catch (cause) {
       // Une annulation demandée par l'appelant n'est pas une panne : on la
       // laisse remonter telle quelle, sinon un changement d'écran ressemblerait
@@ -133,7 +149,7 @@ export class DiraMapsClient {
       signal?.removeEventListener('abort', onAbort);
     }
 
-    if (!response.ok) throw httpError(path, response.status);
+    if (!response.ok) throw httpError(path, response.status, response.headers);
     try {
       return (await response.json()) as T;
     } catch {
@@ -156,12 +172,28 @@ function queryString(params: Record<string, string | number | undefined>): strin
     .join('&');
 }
 
-function httpError(path: string, status: number): DiraMapsError {
+function httpError(path: string, status: number, headers?: Headers): DiraMapsError {
   if (status === 503) {
     return new DiraMapsError(
       'routing_unavailable',
       `Dira Maps: aucun moteur de routage configuré (${path})`,
       status,
+    );
+  }
+  if (status === 401 || status === 403) {
+    return new DiraMapsError(
+      'auth',
+      `Dira Maps: clé API refusée sur ${path} (${status})`,
+      status,
+    );
+  }
+  if (status === 429) {
+    const retryAfter = Number(headers?.get('Retry-After'));
+    return new DiraMapsError(
+      'quota',
+      `Dira Maps: quota de la clé atteint sur ${path}`,
+      status,
+      Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : undefined,
     );
   }
   if (status >= 400 && status < 500) {

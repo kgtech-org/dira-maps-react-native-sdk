@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { diraBasemapTemplate, diraOverlayTemplate, diraTileTemplate } from '../overlay';
+import { diraBasemapTemplate, diraOverlayTemplate, diraStyleUrl, diraTileTemplate } from '../overlay';
 
 describe('diraOverlayTemplate', () => {
   const base = { siteUrl: 'https://maps.dira.llc', city: 'lome' as const };
@@ -72,6 +72,29 @@ describe('diraBasemapTemplate', () => {
   it('accepte un autre style', () => {
     expect(diraBasemapTemplate({ siteUrl: 'https://x.tld', style: 'dira-dark' })).toContain(
       '/basemap/styles/dira-dark/',
+    );
+  });
+});
+
+describe('clé API sur les gabarits', () => {
+  it('ajoute ?key= aux tuiles et au fond — un gabarit n’a pas d’en-têtes', () => {
+    expect(
+      diraTileTemplate({ apiUrl: 'https://maps.dira.llc/api', city: 'lome', apiKey: 'dira_live_k' }),
+    ).toBe('https://maps.dira.llc/api/tiles/lome/{z}/{x}/{y}.png?key=dira_live_k');
+    expect(
+      diraBasemapTemplate({ siteUrl: 'https://maps.dira.llc', apiKey: 'dira_live_k' }),
+    ).toBe('https://maps.dira.llc/basemap/styles/basic-preview/{z}/{x}/{y}.png?key=dira_live_k');
+  });
+
+  it('ne change rien sans clé, ni pour une clé vide', () => {
+    const sans = diraTileTemplate({ apiUrl: 'https://maps.dira.llc/api', city: 'lome' });
+    expect(sans).not.toContain('key=');
+    expect(diraTileTemplate({ apiUrl: 'https://maps.dira.llc/api', city: 'lome', apiKey: '  ' })).toBe(sans);
+  });
+
+  it('donne l’URL du style MapLibre de la clé', () => {
+    expect(diraStyleUrl({ siteUrl: 'https://maps.dira.llc/', apiKey: 'dira_live_k' })).toBe(
+      'https://maps.dira.llc/api/styles/dira_live_k.json',
     );
   });
 });

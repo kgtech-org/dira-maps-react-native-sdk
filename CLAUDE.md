@@ -45,6 +45,7 @@ src/
 - **Un repli est toujours signalé** (`approximate: true`). Une ligne droite présentée comme un itinéraire ferait rouler quelqu'un dans un mur.
 - **Une requête par tournée**, pas par position GPS. Les échecs ne sont pas mémorisés.
 - **`lon` et non `lng`** sur `/geocode/reverse` — seule exception de la plateforme, normalisée par le client.
+- **La clé API vient de la configuration de l'app** (`apiKey`), jamais d'une constante dans le code : envoyée en `X-Api-Key` par le client, en `?key=` par les gabarits. Optionnelle tant que le serveur accepte l'anonyme ; `auth` et `quota` sont des erreurs de configuration, pas des pannes — pas de repli.
 - **Aucune dépendance à l'exécution.** Chacune serait imposée à toutes les applications Dira.
 
 ## Conventions
