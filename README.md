@@ -75,6 +75,10 @@ Ce n'est pas un pis-aller : la carte web de Dira Maps fait exactement la même c
 
 > **Vous intégrez Dira Maps dans une application React Native ?** Une spec pas à pas, écrite pour
 > être donnée à Claude Code : [`docs/integration-react-native.md`](docs/integration-react-native.md).
+> Pour le **thème de carte** du compte (style MapLibre par clé, web et mobile) :
+> [`docs/integration-themes.md`](docs/integration-themes.md). Pour une application **Android native
+> (Kotlin)** — il n'y a pas de SDK Kotlin, mais un client HTTP de 150 lignes à écrire en suivant les
+> mêmes règles : [`docs/integration-kotlin.md`](docs/integration-kotlin.md).
 
 ## Installation
 
