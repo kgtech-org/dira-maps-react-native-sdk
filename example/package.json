@@ -6,8 +6,8 @@
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "check": "tsx src/cli.ts",
     "check:offline": "tsx src/cli.ts --offline",
     "typecheck": "tsc --noEmit",
@@ -16,6 +16,7 @@
   "dependencies": {
     "@expo/metro-runtime": "~4.0.1",
     "@kgtech-org/dira-maps-react-native": "file:..",
+    "@maplibre/maplibre-react-native": "^10.4.2",
     "expo": "~52.0.0",
     "expo-asset": "~11.0.5",
     "expo-constants": "~17.0.8",

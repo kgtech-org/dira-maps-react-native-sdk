@@ -11,13 +11,15 @@
  *    C'est là que se voient les choses qu'un émulateur ne reproduit pas : un
  *    réseau mobile lent, un proxy d'entreprise, un certificat refusé.
  */
-import { useCallback, useMemo, useState } from 'react';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { DiraMapsClient, RouteService, useRoute } from '@kgtech-org/dira-maps-react-native';
 
 import { MapPane } from './src/MapPane';
 import { CHECKS, runCheck, type CheckResult } from './src/checks';
-import { CITY, MAPS_API_URL, TOUR } from './src/config';
+import { CITY, MAPS_API_KEY, MAPS_API_URL, TOUR } from './src/config';
+import { PREREGLAGES, fetchKeyTheme, type Theme } from './src/theme';
 
 const COLORS = {
   ok: '#1f7a4d',
@@ -28,8 +30,28 @@ const COLORS = {
   line: '#7a1f2b', // maroon Dira
 };
 
+const IS_EXPO_GO = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+
 export default function App() {
-  const client = useMemo(() => new DiraMapsClient({ baseUrl: MAPS_API_URL }), []);
+  const client = useMemo(
+    () => new DiraMapsClient({ baseUrl: MAPS_API_URL, apiKey: MAPS_API_KEY }),
+    [],
+  );
+
+  // Les thèmes : celui de la clé, lu depuis le serveur, puis les préréglages.
+  // Le thème de la clé arrive après un aller-retour ; en attendant, `dira`.
+  const [themes, setThemes] = useState<Theme[]>(PREREGLAGES);
+  const [themeId, setThemeId] = useState<Theme['id']>('dira');
+  useEffect(() => {
+    fetchKeyTheme()
+      .then((theme) => {
+        if (!theme) return;
+        setThemes([theme, ...PREREGLAGES]);
+        setThemeId('cle');
+      })
+      .catch(() => undefined); // sans thème lisible, les préréglages suffisent
+  }, []);
+  const theme = themes.find((t) => t.id === themeId) ?? PREREGLAGES[0]!;
   const routes = useMemo(() => new RouteService(client), [client]);
 
   // La tournée est constante : la recréer à chaque rendu relancerait une
@@ -58,8 +80,41 @@ export default function App() {
         style={styles.map}
         coordinates={coordinates}
         approximate={approximate}
-        lineColor={COLORS.line}
+        // Le tracé prend la couleur des routes du thème : c'est ce qu'une
+        // application fait de la palette — s'accorder à sa carte.
+        lineColor={theme.palette.routes === '#ffffff' ? COLORS.line : theme.palette.routes}
+        palette={theme.palette}
+        styleUrl={theme.styleUrl}
       />
+
+      <View style={[styles.themes, { backgroundColor: theme.palette.sol }]}>
+        {themes.map((t) => {
+          const active = t.id === themeId;
+          return (
+            <Pressable
+              key={t.id}
+              onPress={() => setThemeId(t.id)}
+              style={[
+                styles.themeChip,
+                { borderColor: t.palette.routes === '#ffffff' ? '#bbb' : t.palette.routes },
+                active && {
+                  backgroundColor: t.palette.routes === '#ffffff' ? '#bbb' : t.palette.routes,
+                },
+              ]}
+            >
+              <Text style={[styles.themeChipText, { color: active ? '#fff' : theme.palette.libelles }]}>
+                {t.id === 'cle' ? `clé · ${t.nom}` : t.nom}
+              </Text>
+            </Pressable>
+          );
+        })}
+        <Text style={[styles.themeNote, { color: theme.palette.libelles }]} numberOfLines={2}>
+          {themeId === 'cle' ? 'thème de la clé (/api/styles/<clé>.json)' : 'préréglage'}
+          {IS_EXPO_GO
+            ? ' — Expo Go : palette sur le tracé et les marqueurs seulement ; le fond thémé demande un development build'
+            : ' — rendu MapLibre du style'}
+        </Text>
+      </View>
 
       {approximate ? (
         <View style={[styles.banner, { backgroundColor: COLORS.warn }]}>
@@ -115,7 +170,18 @@ export default function App() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
-  map: { height: '42%' },
+  map: { height: '38%' },
+  themes: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  themeChip: { borderWidth: 1.5, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 4 },
+  themeChipText: { fontSize: 12, fontWeight: '600' },
+  themeNote: { fontSize: 10, flexBasis: '100%', opacity: 0.8 },
   banner: { paddingHorizontal: 12, paddingVertical: 6 },
   bannerText: { color: '#fff', fontSize: 12, fontWeight: '600' },
   panel: { flex: 1 },

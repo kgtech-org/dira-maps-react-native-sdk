@@ -1,0 +1,6 @@
+# Projets natifs GÉNÉRÉS par `npx expo prebuild` (development build MapLibre) :
+# reproductibles depuis app.json, jamais versionnés — ils pèsent des centaines
+# de Mo une fois compilés et divergeraient de la config à chaque régénération.
+android/
+ios/
+.expo/
