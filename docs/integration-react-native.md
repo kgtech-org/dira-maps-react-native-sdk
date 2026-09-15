@@ -180,7 +180,9 @@ const results = await diraMaps.geocode(text, { city: delivery.city, limit: 5 });
 1. **la base de lieux Dira** (commerces, pharmacies, écoles importés d'Overture ; repères appris
    des livraisons) — restreinte à `city`, tolérante aux accents et à la casse, sur le nom **et
    l'adresse** (« en face de la pharmacie » trouve) ; gratuite, immédiate ;
-2. **Google Places** si la base est muette (et qu'une clé Google est configurée côté serveur) ;
+2. **Google Places** si la base est muette (et qu'une clé Google est configurée côté serveur) —
+   la *recherche* de Google Maps (Text Search), biaisée sur la ville : « opera » à Lomé rend les
+   mêmes boulangeries Opera que l'application Google Maps, avec `raw.name` ;
 3. **Nominatim** sinon.
 
 L'admin peut inverser les deux premières (paramètre `recherche_google_prioritaire`) ; l'app ne
@@ -190,7 +192,7 @@ Chaque résultat dit d'où il vient : `result.raw.source` vaut `overture`, `appr
 lieu de la base, et la réponse entière porte `source` (`dira`, `google`, `nominatim`). Un lieu de la
 base a en plus `raw.name`, `raw.categorie`, `raw.telephone` — utiles pour un écran de détail, à
 lire dans `raw` (le SDK ne les type pas, ils sont propres à Dira). **Toujours passer `city`** : sans
-elle, la base est interrogée sur toutes les villes et Google sans restriction de pays.
+elle, la base est interrogée sur toutes les villes et Google sans biais de ville ni de pays.
 
 **Acceptation** : `reverseGeocode` d'un point du centre de Lomé rend une adresse ; `geocode('pharmacie',
 { city: 'lome' })` rend des pharmacies de Lomé avec `raw.source === 'overture'` ; une chaîne
