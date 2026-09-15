@@ -6,6 +6,38 @@ s'installe depuis son dépôt (voir [README](README.md#installation)).
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 versions selon [SemVer](https://semver.org/lang/fr/).
 
+## [0.3.0] — 2026-09-15
+
+Le portail des applications de Dira Maps existe : chaque application a un
+**compte** et des **clés API**. Ce paquet les porte.
+
+### Ajouté
+
+- `DiraMapsClient({ apiKey })` : la clé de l'application, envoyée en
+  `X-Api-Key` sur chaque appel. Optionnelle tant que Dira Maps accepte les
+  appels anonymes — la transition douce côté serveur.
+- `diraTileTemplate({ apiKey })` et `diraBasemapTemplate({ apiKey })` :
+  la clé en `?key=` sur les gabarits (un gabarit n'a pas d'en-têtes).
+- `diraStyleUrl({ siteUrl, apiKey })` : l'URL du **style MapLibre** de la
+  clé — le fond de carte aux couleurs du thème réglé dans le portail. Pour les
+  composants qui rendent en vecteur ; `react-native-maps` ne l'applique pas.
+- `DiraMapsError` : deux conduites de plus. `auth` (401/403 : clé absente,
+  révoquée, service désactivé) et `quota` (429, avec `retryAfterS`). Ni l'une
+  ni l'autre ne conseille un repli en segments droits — ce sont des
+  configurations à corriger, pas des pannes.
+- Banc d'essai : le cache Redis est mesuré derrière un CDN (paramètre unique
+  par requête) ; la surimpression WMS n'est plus qu'un avertissement — un
+  déploiement peut légitimement ne pas exposer `/ows/`.
+- Trois specs d'intégration écrites pour Claude Code, dans `docs/` :
+  React Native, thèmes de carte (web et mobile), Android natif (Kotlin).
+- Intégration continue : typecheck, tests, build ; exemple compilé et banc
+  d'essai hors ligne.
+
+### Modifié
+
+- Villes desservies : `dakar`, `lome`, `conakry` (Abidjan et Cotonou retirées).
+- L'exemple lit `EXPO_PUBLIC_MAPS_API_KEY`.
+
 ## [0.2.0] — 2026-09-07
 
 Le paquet est désormais **publié sur GitHub Packages** à chaque tag `v*`.
@@ -84,5 +116,6 @@ c'est expliqué en tête du README, avec les raisons de ne pas passer par une
   natif : Metro le charge sans configuration, et il n'y a ni liaison native ni
   `pod install`.
 
+[0.3.0]: https://github.com/kgtech-org/dira-maps-react-native-sdk/releases/tag/v0.3.0
 [0.2.0]: https://github.com/kgtech-org/dira-maps-react-native-sdk/releases/tag/v0.2.0
 [0.1.0]: https://github.com/kgtech-org/dira-maps-react-native-sdk/releases/tag/v0.1.0
