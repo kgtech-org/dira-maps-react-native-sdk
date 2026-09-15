@@ -102,7 +102,7 @@ function thin<T>(points: T[], max: number): T[] {
   return kept;
 }
 
-export function TileGrid({ coordinates, approximate, style, lineColor }: MapPaneProps) {
+export function TileGrid({ coordinates, approximate, style, lineColor, palette }: MapPaneProps) {
   const [size, setSize] = useState<{ width: number; height: number } | null>(null);
 
   const onLayout = (event: LayoutChangeEvent) => {
@@ -111,8 +111,10 @@ export function TileGrid({ coordinates, approximate, style, lineColor }: MapPane
   };
 
   return (
-    <View style={[style, styles.pane]} onLayout={onLayout}>
-      {size ? <Grid {...{ size, coordinates, approximate, lineColor }} /> : null}
+    // Le sol du thème sous les tuiles : visible le temps qu'elles arrivent, et
+    // hors du fond auto-hébergé — c'est la couleur que le style donnerait.
+    <View style={[style, styles.pane, { backgroundColor: palette.sol }]} onLayout={onLayout}>
+      {size ? <Grid {...{ size, coordinates, approximate, lineColor, palette }} /> : null}
     </View>
   );
 }
@@ -122,11 +124,13 @@ function Grid({
   coordinates,
   approximate,
   lineColor,
+  palette,
 }: {
   size: { width: number; height: number };
   coordinates: MapPaneProps['coordinates'];
   approximate: boolean;
   lineColor: string;
+  palette: MapPaneProps['palette'];
 }) {
   const { width, height } = size;
   const z = fitZoom(boundsOf(coordinates), width, height);
@@ -214,7 +218,13 @@ function Grid({
       })}
 
       {steps.map((point, index) => (
-        <View key={index} style={[styles.marker, { left: point.x - 11, top: point.y - 11 }]}>
+        <View
+          key={index}
+          style={[
+            styles.marker,
+            { left: point.x - 11, top: point.y - 11, backgroundColor: lineColor },
+          ]}
+        >
           <Text style={styles.markerLabel}>{index + 1}</Text>
         </View>
       ))}

@@ -32,6 +32,7 @@ import { diraTileTemplate, toLatLng } from '@kgtech-org/dira-maps-react-native';
 import { CITY, CITY_CENTER, MAPS_API_KEY, MAPS_API_URL, NATIVE_GROUND, TOUR } from './config';
 import type { MapPaneProps } from './MapPane.types';
 import { TileGrid } from './TileGrid';
+import { VectorPane } from './VectorPane';
 
 /** Expo Go, par opposition à un *dev build* ou à une application publiée. */
 const IS_EXPO_GO = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
@@ -44,9 +45,17 @@ const IS_EXPO_GO = Constants.executionEnvironment === ExecutionEnvironment.Store
  */
 const GROUND_AVAILABLE = !(Platform.OS === 'android' && IS_EXPO_GO);
 
+/**
+ * Le rendu VECTORIEL du thème (MapLibre) n'existe que là où son module natif
+ * est lié : un development build, jamais Expo Go. C'est le seul volet où le
+ * thème change vraiment — les autres ne font que s'accorder à sa palette.
+ */
+const VECTOR_AVAILABLE = !IS_EXPO_GO;
+
 export function MapPane(props: MapPaneProps) {
   const { coordinates, approximate, style, lineColor } = props;
 
+  if (VECTOR_AVAILABLE) return <VectorPane {...props} />;
   if (!NATIVE_GROUND || !GROUND_AVAILABLE) return <TileGrid {...props} />;
 
   return (

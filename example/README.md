@@ -73,6 +73,26 @@ trous.
 
 Un repli en segments droits apparaît **en pointillé** sur la carte, pas seulement dans un bandeau : ainsi il ne peut pas se faire passer pour un itinéraire.
 
+## Les thèmes de carte — en development build
+
+Sous la carte, un sélecteur : **clé · <thème>** (le thème assigné à la clé dans le portail, lu
+depuis `/api/styles/<clé>.json`) puis les préréglages `dira`, `clair`, `sombre`. Un thème est un
+**style MapLibre** ; le voir changer — les rues, l'eau, le sol aux couleurs du portail — exige un
+moteur vectoriel, donc un **module natif** qu'Expo Go ne charge pas :
+
+```sh
+npx expo prebuild --platform android          # génère android/ (ignoré par git)
+npx expo run:android                          # compile et installe le development build
+EXPO_PUBLIC_MAPS_API_KEY=dira_live_… npm start # Metro ; l'app se connecte au port 8081
+```
+
+En development build, le volet est rendu par `@maplibre/maplibre-react-native` (`VectorPane.tsx`) :
+fond thémé, tuiles Dira en superposition à 35 % (à pleine opacité, ces PNG aux couleurs de QGIS
+couvriraient le fond qu'on est venu regarder), tracé et étapes par-dessus. Changer de thème, c'est
+donner une autre URL à `mapStyle` — rien n'est recoloré à la main. Dans Expo Go, le volet retombe
+sur la grille raster : la palette s'applique au tracé et aux marqueurs, et la note sous le
+sélecteur dit que le fond n'y est pas thémé. Voir [`../docs/integration-themes.md`](../docs/integration-themes.md).
+
 ## Ce qui est vérifié
 
 | Vérification | Ce que casserait un échec |

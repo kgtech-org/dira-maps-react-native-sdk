@@ -16,7 +16,8 @@
       "bundler": "metro"
     },
     "plugins": [
-      "expo-asset"
+      "expo-asset",
+      "@maplibre/maplibre-react-native"
     ]
   }
 }
