@@ -163,20 +163,38 @@ Points à respecter :
 droites entre les étapes), le bâti Dira apparaît par-dessus au zoom 15+. Couper le réseau → le
 tracé repasse en pointillé avec le bandeau.
 
-### Tâche 4 — Géocodage
+### Tâche 4 — Géocodage et recherche de lieux
 
 ```ts
 // Nommer un point (ex. une boutique sans adresse saisie)
 const result = await diraMaps.reverseGeocode(shop.geo); // [lng, lat]
 label = result?.formattedAddress ?? 'Adresse inconnue'; // null = pas de résultat, pas une erreur
 
-// Saisie assistée
+// Recherche de lieux (saisie assistée, « pharmacie », « en face du marché »…)
 const results = await diraMaps.geocode(text, { city: delivery.city, limit: 5 });
 // results[i].location est en [lng, lat] : toLatLng() avant de le poser sur la carte
 ```
 
-**Acceptation** : `reverseGeocode` d'un point du centre de Lomé rend une adresse ; `geocode('Lomé')`
-rend au moins un résultat.
+**Ce que `geocode` cherche, dans l'ordre** — et l'app n'a rien à faire pour ça, c'est le serveur :
+
+1. **la base de lieux Dira** (commerces, pharmacies, écoles importés d'Overture ; repères appris
+   des livraisons) — restreinte à `city`, tolérante aux accents et à la casse, sur le nom **et
+   l'adresse** (« en face de la pharmacie » trouve) ; gratuite, immédiate ;
+2. **Google Places** si la base est muette (et qu'une clé Google est configurée côté serveur) ;
+3. **Nominatim** sinon.
+
+L'admin peut inverser les deux premières (paramètre `recherche_google_prioritaire`) ; l'app ne
+choisit pas et ne doit pas essayer de contourner l'ordre en appelant Google elle-même.
+
+Chaque résultat dit d'où il vient : `result.raw.source` vaut `overture`, `appris` ou `osm` pour un
+lieu de la base, et la réponse entière porte `source` (`dira`, `google`, `nominatim`). Un lieu de la
+base a en plus `raw.name`, `raw.categorie`, `raw.telephone` — utiles pour un écran de détail, à
+lire dans `raw` (le SDK ne les type pas, ils sont propres à Dira). **Toujours passer `city`** : sans
+elle, la base est interrogée sur toutes les villes et Google sans restriction de pays.
+
+**Acceptation** : `reverseGeocode` d'un point du centre de Lomé rend une adresse ; `geocode('pharmacie',
+{ city: 'lome' })` rend des pharmacies de Lomé avec `raw.source === 'overture'` ; une chaîne
+inventée ne lève pas d'erreur (liste vide ou résultat Google/Nominatim, selon la configuration).
 
 ### Tâche 5 — Les erreurs, classées par conduite à tenir
 
@@ -205,9 +223,12 @@ Deux voies :
 - **Raster, avec `react-native-maps`** : `<UrlTile urlTemplate={diraBasemapTemplate({ siteUrl, apiKey })} />`
   sous les tuiles Dira, et `mapType="none"` sur Android pour ne pas dessiner le sol Google dessous.
   Le thème de l'application ne s'applique pas ici.
-- **Vecteur, avec `@maplibre/maplibre-react-native`** : `styleURL={diraStyleUrl({ siteUrl, apiKey })}` —
-  le fond aux couleurs du thème réglé dans le portail. C'est un autre composant de carte ; ne pas
-  mélanger les deux.
+- **Vecteur, avec `@maplibre/maplibre-react-native`** : `mapStyle={diraStyleUrl({ siteUrl, apiKey })}` —
+  le fond aux couleurs du **thème** réglé dans le portail, le seul volet où le thème s'applique. C'est
+  un autre composant de carte, qui exige un *development build* (module natif, absent d'Expo Go) ;
+  ne pas mélanger les deux. La spec dédiée : `integration-themes.md` ; l'exemple du SDK
+  (`example/src/VectorPane.tsx`) est l'implémentation de référence — tuiles Dira en `RasterSource`
+  par-dessus le fond, à opacité réduite.
 
 **Acceptation** : hors de l'emprise (ex. à 30 km de Lomé), l'écran affiche encore une carte lisible
 (fond natif) — pas un vide.
@@ -218,6 +239,14 @@ Deux voies :
   `Authorization failure` dans `adb logcat`). Ce n'est pas Dira Maps. Tester dans un *development
   build* (`npx expo run:android`), ou sur iOS, ou avec le fond Dira (tâche 6) le temps du
   développement. Le banc d'essai du SDK gère ce cas avec une grille de tuiles.
+- **Expo Go se met à jour tout seul** via le Play Store et cesse alors d'ouvrir un projet d'un SDK
+  antérieur (« Project is incompatible with this version of Expo Go »). Désactiver sa mise à jour
+  automatique, ou installer la version du SDK du projet depuis
+  `github.com/expo/expo-go-releases`.
+- **Une clé de placeholder n'est pas une clé.** Une app vue en production avec `dira_live_wrong`
+  recevait des 401 sur chaque tuile et un 404 sur son style : la valeur de `EXPO_PUBLIC_MAPS_API_KEY`
+  vient du portail (Clés → créer → copier à l'affichage), et l'erreur `auth` du SDK est là pour le
+  dire tout de suite.
 - **`lon` et non `lng`** sur `/geocode/reverse` si l'app appelle l'API à la main — raison de plus de
   passer par le SDK, qui normalise.
 - **Les tuiles du téléphone se mettent en cache** : après un import de données côté serveur, une tuile
@@ -242,13 +271,17 @@ Attendu en production : tout vert, sauf « Surimpression WMS » en avertissement
 non exposé) et « Couverture du fond » à 4/5 pour Lomé (la 5ᵉ tuile est en mer). Si « Itinéraire
 routier » n'est pas vert, le problème est côté serveur, pas côté app : s'arrêter et le signaler.
 
+Avec une clé, le banc envoie `X-Api-Key` sur ses appels : la console du portail (Tableau de bord,
+Appels) montre alors ces appels sous la clé — c'est le moyen de vérifier que la clé de l'app est la
+bonne et que ses services sont activés.
+
 ## 6. Ce que Claude Code doit rendre à la fin
 
 - `src/services/dira-maps.ts` (tâche 2), l'écran de carte (tâche 3), le géocodage là où l'app en a
   besoin (tâche 4), le composant d'erreur (tâche 5).
 - Les trois variables dans `.env.example` de l'app, documentées.
 - `tsc` et les tests de l'app verts ; une capture de l'écran de carte avec un tracé qui suit la voirie
-  et le bâti Dira visible.
+  et le bâti Dira visible ; une capture d'une recherche « pharmacie » rendant des lieux de la base.
 - La liste des règles de la section 1, cochée une par une dans la PR.
 
 ## Références
