@@ -36,7 +36,7 @@ export interface Theme {
 }
 
 const PALETTES: Record<Exclude<Theme['id'], 'cle'>, Palette> = {
-  dira: { fond: 'clair', routes: '#7a1f2b', eau: '#a9c9e6', bati: '#d9cfc4', sol: '#efe9df', libelles: '#2b2b2b' },
+  dira: { fond: 'sombre', routes: '#8c8c8c', eau: '#3f3f3f', bati: '#606060', sol: '#4b4b4b', libelles: '#e2e2e2' },
   clair: { fond: 'clair', routes: '#ffffff', eau: '#b7d3ea', bati: '#e3ded7', sol: '#f2f0eb', libelles: '#3a3a3a' },
   sombre: { fond: 'sombre', routes: '#4a4a4a', eau: '#1f3a4d', bati: '#2c2c2c', sol: '#1c1c1c', libelles: '#d0d0d0' },
 };
