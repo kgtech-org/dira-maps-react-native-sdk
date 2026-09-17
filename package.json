@@ -1,6 +1,6 @@
 {
   "name": "@kgtech-org/dira-maps-react-native",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Client React Native de Dira Maps : itinéraires routiers, géocodage et primitives de carte. Fournit des DONNÉES à poser sur la carte native — Dira Maps n'a aucune vue à intégrer.",
   "license": "UNLICENSED",
   "private": false,
