@@ -99,11 +99,19 @@ curl -sI -X OPTIONS -H "Origin: https://mon-app.example" -H "Access-Control-Requ
      -H "Access-Control-Request-Headers: x-api-key" "$VITE_MAPS_API_URL/geocode"
 ```
 
-Attendu : `Access-Control-Allow-Origin: https://mon-app.example` sur les deux, et un `200`/`204` sur
-l'`OPTIONS`. **Si ce n'est pas le cas, s'arrêter et le demander à l'équipe Dira Maps** : l'origine de
-l'app doit être ajoutée à la liste des origines autorisées côté serveur. Ne pas contourner par un
-proxy dans l'app « en attendant » : le proxy cache la clé côté serveur, d'accord, mais il fait
-transiter chaque tuile par l'app, et il restera.
+Attendu : `Access-Control-Allow-Origin: https://mon-app.example` sur les deux (le premier appel
+avec `-H "X-Api-Key: $VITE_MAPS_API_KEY"`), et un `204` sur l'`OPTIONS`. **Si ce n'est pas le cas,
+s'arrêter et le demander à l'équipe Dira Maps** — c'est un déploiement antérieur à `0016`. Ne pas
+contourner par un proxy dans l'app « en attendant » : le proxy cache la clé côté serveur, d'accord,
+mais il fait transiter chaque tuile par l'app, et il restera.
+
+Comment Dira Maps décide : **par clé**. Une clé présentée obtient l'en-tête CORS pour l'origine qui
+l'appelle ; une clé sans origines autorisées répond à n'importe quelle origine (elle est publique,
+elle identifie, elle ne donne aucun droit — comme une clé Google non restreinte). En production,
+**restreindre la clé aux origines de l'app** dans le portail (Clés → Origines web :
+`https://mon-app.example`, plus `http://localhost:5173` pour le développement) : toute autre origine
+reçoit un `403` lisible, `X-Dira-Raison: origine`. Sans clé, aucun en-tête CORS : une application
+web a une clé.
 
 Deux exceptions qui marchent sans CORS, et qui trompent : `/basemap/` (le serveur de fond répond
 `*`) et une balise `<img>` ou une couche Leaflet (chargement sans `fetch`). Une carte Leaflet peut
@@ -255,8 +263,10 @@ Le SDK lève `DiraMapsError` avec un `kind` :
 | `request` | 4xx : appel invalide | bug côté app (ville inconnue, moins de deux points) |
 | `server` | 5xx | réessayer plus tard |
 
-Un cas de plus sur le web : **`network` sur tous les appels alors que `curl` passe** = CORS
-(tâche 0), pas le réseau. Le dire dans le message d'erreur du composant, avec l'origine de l'app.
+Deux cas de plus sur le web : **`network` sur tous les appels alors que `curl` passe** = CORS
+(tâche 0), pas le réseau — le dire dans le message d'erreur du composant, avec l'origine de l'app ;
+et **`auth` avec `X-Dira-Raison: origine`** = la clé est restreinte à d'autres origines dans le
+portail (Clés → Origines web) — ajouter celle de l'app.
 
 **Acceptation** : un test unitaire par `kind` sur le composant qui affiche le bandeau.
 
