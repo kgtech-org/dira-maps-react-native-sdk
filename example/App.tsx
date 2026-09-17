@@ -16,7 +16,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View, useColorScheme } from 'react-native';
 import { DiraMapsClient, RouteService, useRoute } from '@kgtech-org/dira-maps-react-native';
 
-import { MapPane } from './src/MapPane';
+import { ENGINE_IN_USE, MapPane } from './src/MapPane';
 import { CHECKS, runCheck, type CheckResult } from './src/checks';
 import { CITY, MAPS_API_KEY, MAPS_API_URL, TOUR } from './src/config';
 import { PREREGLAGES, apparence, fetchKeyTheme, type Theme } from './src/theme';
@@ -134,9 +134,13 @@ export default function App() {
           {app === 'sombre' ? 'nuit' : 'jour'}
           {choix ? " (choix de l'app)" : scheme ? ' (mode du téléphone)' : ' (défaut du thème)'} —{' '}
           {themeId === 'cle' ? 'thème de la clé (/api/styles/<clé>.json?apparence=…)' : 'préréglage'}
-          {IS_EXPO_GO
-            ? ' — Expo Go : palette sur le tracé et les marqueurs seulement ; le fond thémé demande un development build'
-            : ' — rendu MapLibre du style'}
+          {ENGINE_IN_USE === 'maplibre'
+            ? ' — rendu MapLibre du style'
+            : ENGINE_IN_USE === 'native'
+              ? ' — carte native : le thème ne s’applique pas au sol, seulement au tracé'
+              : IS_EXPO_GO
+                ? ' — Expo Go : palette sur le tracé et les marqueurs seulement ; le fond thémé demande un development build'
+                : ' — tuiles Dira seules : palette sur le tracé et les marqueurs'}
         </Text>
       </View>
 

@@ -22,9 +22,12 @@ Ce que Dira Maps donne à une application Android, c'est **du JSON sur HTTP** et
 | montrer le bâti, la voirie, l'eau de Dira | `/api/tiles/{ville}/{z}/{x}/{y}.png` | un `TileOverlay` par-dessus la carte |
 | un fond de carte Dira (optionnel) | `/basemap/styles/…/{z}/{x}/{y}.png` (raster) ou `/api/styles/<clé>.json` (MapLibre) | à la place du fond Google |
 
-**La carte, c'est celle du téléphone** — Google Maps SDK for Android (`com.google.android.gms:play-services-maps`)
-ou, si l'app veut le fond et le **thème** Dira, **MapLibre Native** (`org.maplibre.gl:android-sdk`).
-Dira Maps se pose dessus.
+**La carte, c'est celle du téléphone** — Google Maps SDK for Android (`com.google.android.gms:play-services-maps`,
+clé `com.google.android.geo.API_KEY` dans le manifeste, jamais dans le dépôt) ou, si l'app veut le
+fond et le **thème** Dira, jour et nuit, **MapLibre Native** (`org.maplibre.gl:android-sdk`, sans
+clé). C'est le choix de l'app — Dira Maps se pose sur l'un comme sur l'autre, avec les mêmes appels ;
+ce qui change : Google couvre le monde mais ne prend pas le thème, MapLibre prend le thème mais ne
+couvre que ≈ 13 km autour de chaque ville.
 
 Il n'y a pas de SDK Kotlin : l'intégration est un **client HTTP typé** (Retrofit + kotlinx.serialization
 ou Moshi) d'environ 150 lignes, écrit dans l'app, en suivant les règles ci-dessous. Le SDK React

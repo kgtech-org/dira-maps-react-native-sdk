@@ -31,15 +31,24 @@ export const CITY_CENTER: [number, number] = [
 ];
 
 /**
- * Emprunter le sol du composant natif, ou poser les tuiles Dira seules.
+ * Le moteur de carte — LE choix d'une application, et il se fait chez elle,
+ * pas dans le SDK, qui ne rend aucune vue et alimente les trois pareil :
  *
- * Vrai par défaut : c'est le partage des rôles que le SDK enseigne, et le seul
- * correct sur un vrai téléphone. Le mettre à `0` force les tuiles Dira sans
- * aucun fond tiers — utile là où la carte native ne démarre pas (Expo Go sur
- * Android refuse la clé Google), et pour regarder ce que Dira sert VRAIMENT,
- * sans le sol d'un autre en dessous pour boucher les trous.
+ *  - `maplibre` : le fond vectoriel Dira aux couleurs du thème, jour et nuit
+ *    (`@maplibre/maplibre-react-native` — un development build) ;
+ *  - `native`   : la carte du téléphone, Google sur Android (sa clé dans
+ *    `app.config.js`), Apple sur iOS, tuiles Dira par-dessus
+ *    (`react-native-maps`) — le thème ne s'y applique pas ;
+ *  - `tiles`    : les tuiles Dira seules, sans aucun fond tiers — ce que Dira
+ *    sert VRAIMENT, sans le sol d'un autre pour boucher les trous.
+ *
+ * Vide : `maplibre` en development build, sinon `native` là où son sol vient
+ * (Expo Go sur Android refuse la clé Google) et `tiles` ailleurs.
  */
-export const NATIVE_GROUND = env('EXPO_PUBLIC_MAPS_NATIVE_GROUND', '1') !== '0';
+export type Engine = 'maplibre' | 'native' | 'tiles';
+const engine = env('EXPO_PUBLIC_MAPS_ENGINE', '');
+export const ENGINE: Engine | null =
+  engine === 'maplibre' || engine === 'native' || engine === 'tiles' ? engine : null;
 
 /** Une course plausible à Lomé : Tokoin → Bè, deux points distants d'environ 2 km. */
 export const TOUR: [number, number][] = [

@@ -47,12 +47,36 @@ npm start          # puis « a » (Android), « i » (iOS), ou scanner le QR cod
 
 **Scanner le QR code avec un téléphone est le chemin le plus court** vers la carte complète — il n'exige ni Xcode ni émulateur.
 
+### Choisir son moteur de carte
+
+C'est **le** choix d'une application, et il se fait chez elle — le SDK ne rend aucune vue et
+alimente les trois de la même façon (tuiles, tracé, géocodage). `EXPO_PUBLIC_MAPS_ENGINE` :
+
+| Moteur | Composant | Ce qu'on a | Ce qu'on n'a pas |
+|---|---|---|---|
+| `maplibre` | `@maplibre/maplibre-react-native` | le fond Dira aux couleurs du **thème**, jour et nuit | un development build ; hors des villes couvertes, la carte est vide |
+| `native` | `react-native-maps` | la carte du téléphone — Google sur Android, Apple sur iOS —, le monde entier, tuiles Dira par-dessus | le thème Dira (le composant dessine son sol) ; sur Android, **une clé Google** |
+| `tiles` | grille maison | les tuiles Dira **seules** — ce que Dira sert vraiment, sans le sol d'un autre pour boucher les trous | tout le reste |
+
+Vide : `maplibre` en development build, sinon `native` là où son sol vient, `tiles` ailleurs.
+
+**La clé Google** (`native`, Android) se donne **au build**, jamais dans un fichier commité :
+
+```sh
+GOOGLE_MAPS_API_KEY=AIza… npx expo prebuild --platform android   # app.config.js l'écrit dans android/ (ignoré par git)
+EXPO_PUBLIC_MAPS_ENGINE=native npm start
+```
+
+Elle vient de la console Google Cloud (API « Maps SDK for Android » activée, clé restreinte à
+l'application par son empreinte). Elle ne passe pas par le bundle JS — pas de préfixe
+`EXPO_PUBLIC_` — et iOS n'en demande aucune (Apple Maps).
+
 ⚠️ **Sur Android, le sol natif ne s'affiche pas dans Expo Go.** La carte de
 `react-native-maps` s'y appuie sur le SDK Google Maps, dont la clé embarquée dans Expo Go est
 refusée (`Authorization failure` dans `adb logcat`) : la surface ne démarre pas et ne demande même
-pas ses tuiles. Le voir exige un *dev build* portant votre propre clé
-(`android.config.googleMaps.apiKey`). Plutôt que d'afficher un rectangle vide qui se lirait comme
-« Dira ne renvoie rien », le volet bascule alors sur les **tuiles Dira seules**.
+pas ses tuiles. Le voir exige un *dev build* portant votre propre clé (ci-dessus). Plutôt que
+d'afficher un rectangle vide qui se lirait comme « Dira ne renvoie rien », le volet bascule alors
+sur les **tuiles Dira seules**.
 
 Ce repli ne porte aucun bandeau : la carte s'affiche vraiment, et la seule limite qui compte —
 **hors de l'emprise importée, elle est blanche** — est déjà mesurée et chiffrée par la vérification
@@ -67,8 +91,8 @@ bas**, le même diagnostic, exécuté depuis l'appareil — c'est là que se voi
 émulateur ne reproduit : un réseau mobile lent, un proxy d'entreprise, un certificat refusé.
 
 Depuis que les tuiles Dira portent le sol et l'eau (migration `0006`), elles se suffisent à faire
-une carte. `EXPO_PUBLIC_MAPS_NATIVE_GROUND=0` les affiche **seules**, sans aucun fond tiers : c'est
-la façon de regarder ce que Dira sert vraiment, sans le sol d'un autre en dessous pour boucher les
+une carte. `EXPO_PUBLIC_MAPS_ENGINE=tiles` les affiche **seules**, sans aucun fond tiers : c'est la
+façon de regarder ce que Dira sert vraiment, sans le sol d'un autre en dessous pour boucher les
 trous.
 
 Un repli en segments droits apparaît **en pointillé** sur la carte, pas seulement dans un bandeau : ainsi il ne peut pas se faire passer pour un itinéraire.
@@ -127,7 +151,8 @@ La couverture du fond est la plus utile après un import : elle échantillonne u
 | `EXPO_PUBLIC_MAPS_SITE_URL` | `https://maps.dira.llc` | racine du site, pour `/ows/` |
 | `EXPO_PUBLIC_MAPS_CITY` | `lome` | ville testée |
 | `EXPO_PUBLIC_MAPS_LNG` / `_LAT` | Lomé | centre de la ville testée |
-| `EXPO_PUBLIC_MAPS_NATIVE_GROUND` | `1` | `0` = tuiles Dira seules, sans le sol du composant natif |
+| `EXPO_PUBLIC_MAPS_ENGINE` | *(auto)* | `maplibre` \| `native` \| `tiles` — le moteur de carte (voir « Choisir son moteur ») |
+| `GOOGLE_MAPS_API_KEY` | *(vide)* | **au build seulement** : clé du SDK Google Maps pour `native` sur Android (`app.config.js`) |
 
 Les deux premières sont **distinctes** : le serveur QGIS est servi sous `/ows/`, hors de l'API. Les confondre donne des 404 silencieux et une carte simplement vide.
 
@@ -136,10 +161,12 @@ Les deux premières sont **distinctes** : le serveur QGIS est servi sous `/ows/`
 ```
 example/
 ├── App.tsx            # carte + diagnostic
+├── app.config.js      # app.json + la clé Google du build (jamais commitée)
 ├── metro.config.js    # suit le lien symbolique vers le SDK du dossier parent
 ├── index.ts
 └── src/
-    ├── MapPane.tsx      # carte native (react-native-maps)
+    ├── MapPane.tsx      # le choix du moteur, et la carte native (react-native-maps)
+    ├── VectorPane.tsx   # la carte MapLibre : le thème, jour et nuit
     ├── MapPane.web.tsx  # son pendant web : pas de carte, et on le dit
     ├── TileGrid.tsx     # repli : les tuiles Dira posées à la main, sans Google
     ├── MapPane.types.ts # le contrat commun aux deux
