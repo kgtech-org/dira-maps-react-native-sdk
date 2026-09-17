@@ -111,7 +111,8 @@ Tout ce que le client doit connaître. Les noms de champs sont ceux du fil — n
 En-têtes de réponse : `X-Dira-Cache: hit|miss`, `Cache-Control: max-age=300` + `ETag`.
 
 **Fond raster** — `GET {site}/basemap/styles/basic-preview/{z}/{x}/{y}.png?key={clé}`.
-**Style MapLibre** — `GET {site}/api/styles/{clé}.json`.
+**Style MapLibre** — `GET {site}/api/styles/{clé}.json?apparence=clair|sombre` (jour ou nuit ; sans
+`apparence`, l'apparence par défaut du thème).
 
 **Erreurs** : `401` clé absente/inconnue/révoquée · `403` service désactivé pour la clé ·
 `429` quota (en-tête `Retry-After`, secondes) · `503` moteur indisponible · autres `4xx` = appel
@@ -243,8 +244,13 @@ Si l'app veut le fond Dira **aux couleurs du thème** du compte, c'est un autre 
 `org.maplibre.gl:android-sdk` (Maven Central). Le thème ne s'applique pas à Google Maps.
 
 ```kotlin
+// Jour ou nuit : le mode du système. Un thème Dira a les deux palettes ; c'est l'app qui dit
+// laquelle — et qui rappelle setStyle quand le mode change (onConfigurationChanged / recréation).
+val nuit = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+val apparence = if (nuit) "sombre" else "clair"   // en Compose : isSystemInDarkTheme()
+
 mapView.getMapAsync { map ->
-    map.setStyle(Style.Builder().fromUri("${BuildConfig.DIRA_MAPS_SITE_URL}/api/styles/${BuildConfig.DIRA_MAPS_API_KEY}.json")) { style ->
+    map.setStyle(Style.Builder().fromUri("${BuildConfig.DIRA_MAPS_SITE_URL}/api/styles/${BuildConfig.DIRA_MAPS_API_KEY}.json?apparence=$apparence")) { style ->
         style.addSource(RasterSource("dira", TileSet("2.2.0",
             "${BuildConfig.DIRA_MAPS_API_URL}/tiles/${city}/{z}/{x}/{y}.png?key=${BuildConfig.DIRA_MAPS_API_KEY}"), 256))
         style.addLayer(RasterLayer("dira", "dira"))
@@ -257,8 +263,9 @@ MapLibre parle en `[lng, lat]` (`Point.fromLngLat`) comme l'API : pas de `toLatL
 Dira ne couvre que ≈ 13 km autour de chaque ville ; hors de là il est vide — garder Google Maps pour
 les écrans qui peuvent en sortir. Détails : `integration-themes.md`.
 
-**Acceptation** : la carte affiche Lomé aux couleurs du thème réglé dans le portail ; changer une
-couleur dans le portail se voit après relance (cache 5 min).
+**Acceptation** : la carte affiche Lomé aux couleurs du thème réglé dans le portail, de nuit quand
+le téléphone est en mode sombre et de jour sinon ; changer une couleur dans le portail se voit après
+relance (cache 5 min).
 
 ## 5. Pièges connus
 

@@ -6,6 +6,28 @@ s'installe depuis son dépôt (voir [README](README.md#installation)).
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 versions selon [SemVer](https://semver.org/lang/fr/).
 
+## [0.4.0] — 2026-09-17
+
+Un thème Dira Maps a désormais **deux palettes**, jour et nuit ; c'est
+l'application qui sait dans quel mode est l'écran, et qui le dit.
+
+### Ajouté
+
+- `diraStyleUrl({ colorScheme })` : `'light'` | `'dark'` — passer
+  `useColorScheme()` tel quel (`null`/`undefined` = l'apparence par défaut du
+  thème, réglée dans le portail). L'URL porte `?apparence=clair|sombre` ;
+  changer de mode, c'est changer d'URL, et MapLibre recharge le style.
+- Type `ColorScheme`.
+- Banc d'essai : suit le mode du téléphone (`userInterfaceStyle: automatic`)
+  et lit les deux palettes du thème de la clé ; préréglages `dira` et
+  `classique`, chacun une paire.
+
+### Modifié
+
+- Docs : `integration-themes.md` (jour et nuit, web et mobile),
+  `integration-react-native.md`, `integration-kotlin.md`
+  (`?apparence=`, `isSystemInDarkTheme()`).
+
 ## [0.3.0] — 2026-09-15
 
 Le portail des applications de Dira Maps existe : chaque application a un

@@ -78,11 +78,12 @@ configuration.
 
 npm install @kgtech-org/dira-maps-react-native
 # ou, sans jeton, en épinglant un tag (le dernier : voir CHANGELOG.md du SDK) :
-npm install github:kgtech-org/dira-maps-react-native-sdk#v0.3.0
+npm install github:kgtech-org/dira-maps-react-native-sdk#v0.4.0
 ```
 
-> `apiKey`, `diraStyleUrl` et les erreurs `auth`/`quota` existent depuis **v0.3.0**. Ne pas
-> épingler une version antérieure.
+> `apiKey`, `diraStyleUrl` et les erreurs `auth`/`quota` existent depuis **v0.3.0** ;
+> `diraStyleUrl({ colorScheme })` (jour/nuit) depuis **v0.4.0**. Ne pas épingler une version
+> antérieure.
 
 `react-native-maps` doit déjà être installé et fonctionner (une `<MapView>` vide s'affiche). Si ce
 n'est pas le cas, c'est un problème de l'app, pas de Dira Maps : le régler d'abord.
@@ -225,8 +226,10 @@ Deux voies :
 - **Raster, avec `react-native-maps`** : `<UrlTile urlTemplate={diraBasemapTemplate({ siteUrl, apiKey })} />`
   sous les tuiles Dira, et `mapType="none"` sur Android pour ne pas dessiner le sol Google dessous.
   Le thème de l'application ne s'applique pas ici.
-- **Vecteur, avec `@maplibre/maplibre-react-native`** : `mapStyle={diraStyleUrl({ siteUrl, apiKey })}` —
-  le fond aux couleurs du **thème** réglé dans le portail, le seul volet où le thème s'applique. C'est
+- **Vecteur, avec `@maplibre/maplibre-react-native`** :
+  `mapStyle={diraStyleUrl({ siteUrl, apiKey, colorScheme: useColorScheme() })}` — le fond aux
+  couleurs du **thème** réglé dans le portail, en version **jour ou nuit selon le téléphone** (un thème
+  a les deux ; `null` = l'apparence par défaut du thème), le seul volet où le thème s'applique. C'est
   un autre composant de carte, qui exige un *development build* (module natif, absent d'Expo Go) ;
   ne pas mélanger les deux. La spec dédiée : `integration-themes.md` ; l'exemple du SDK
   (`example/src/VectorPane.tsx`) est l'implémentation de référence — tuiles Dira en `RasterSource`

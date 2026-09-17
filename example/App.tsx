@@ -13,13 +13,13 @@
  */
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View, useColorScheme } from 'react-native';
 import { DiraMapsClient, RouteService, useRoute } from '@kgtech-org/dira-maps-react-native';
 
 import { MapPane } from './src/MapPane';
 import { CHECKS, runCheck, type CheckResult } from './src/checks';
 import { CITY, MAPS_API_KEY, MAPS_API_URL, TOUR } from './src/config';
-import { PREREGLAGES, fetchKeyTheme, type Theme } from './src/theme';
+import { PREREGLAGES, apparence, fetchKeyTheme, type Theme } from './src/theme';
 
 const COLORS = {
   ok: '#1f7a4d',
@@ -52,6 +52,13 @@ export default function App() {
       .catch(() => undefined); // sans thème lisible, les préréglages suffisent
   }, []);
   const theme = themes.find((t) => t.id === themeId) ?? PREREGLAGES[0]!;
+  // Jour ou nuit : celui du téléphone. Le serveur a les deux palettes de
+  // chaque thème ; changer de mode, c'est changer d'URL de style — la carte
+  // suit d'elle-même, sans redémarrer.
+  const scheme = useColorScheme();
+  const app = apparence(scheme, theme.defaut);
+  const palette = theme.palettes[app];
+  const styleUrl = theme.styleUrl(scheme);
   const routes = useMemo(() => new RouteService(client), [client]);
 
   // La tournée est constante : la recréer à chaque rendu relancerait une
@@ -82,34 +89,31 @@ export default function App() {
         approximate={approximate}
         // Le tracé prend la couleur des routes du thème : c'est ce qu'une
         // application fait de la palette — s'accorder à sa carte.
-        lineColor={theme.palette.routes === '#ffffff' ? COLORS.line : theme.palette.routes}
-        palette={theme.palette}
-        styleUrl={theme.styleUrl}
+        lineColor={palette.routes === '#ffffff' ? COLORS.line : palette.routes}
+        palette={palette}
+        styleUrl={styleUrl}
       />
 
-      <View style={[styles.themes, { backgroundColor: theme.palette.sol }]}>
+      <View style={[styles.themes, { backgroundColor: palette.sol }]}>
         {themes.map((t) => {
           const active = t.id === themeId;
+          const accent = t.palettes[app].routes === '#ffffff' ? '#bbb' : t.palettes[app].routes;
           return (
             <Pressable
               key={t.id}
               onPress={() => setThemeId(t.id)}
-              style={[
-                styles.themeChip,
-                { borderColor: t.palette.routes === '#ffffff' ? '#bbb' : t.palette.routes },
-                active && {
-                  backgroundColor: t.palette.routes === '#ffffff' ? '#bbb' : t.palette.routes,
-                },
-              ]}
+              style={[styles.themeChip, { borderColor: accent }, active && { backgroundColor: accent }]}
             >
-              <Text style={[styles.themeChipText, { color: active ? '#fff' : theme.palette.libelles }]}>
+              <Text style={[styles.themeChipText, { color: active ? '#fff' : palette.libelles }]}>
                 {t.id === 'cle' ? `clé · ${t.nom}` : t.nom}
               </Text>
             </Pressable>
           );
         })}
-        <Text style={[styles.themeNote, { color: theme.palette.libelles }]} numberOfLines={2}>
-          {themeId === 'cle' ? 'thème de la clé (/api/styles/<clé>.json)' : 'préréglage'}
+        <Text style={[styles.themeNote, { color: palette.libelles }]} numberOfLines={2}>
+          {app === 'sombre' ? 'nuit' : 'jour'}
+          {scheme ? ' (mode du téléphone)' : ' (défaut du thème)'} —{' '}
+          {themeId === 'cle' ? 'thème de la clé (/api/styles/<clé>.json?apparence=…)' : 'préréglage'}
           {IS_EXPO_GO
             ? ' — Expo Go : palette sur le tracé et les marqueurs seulement ; le fond thémé demande un development build'
             : ' — rendu MapLibre du style'}

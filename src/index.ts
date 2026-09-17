@@ -16,6 +16,7 @@ export { toLatLng, toLatLngList, toLngLat, toLngLatList, isValidLngLat } from '.
 export { decodePolyline, encodePolyline } from './polyline';
 export { diraBasemapTemplate, diraStyleUrl, diraTileTemplate, diraOverlayTemplate } from './overlay';
 export type {
+  ColorScheme,
   DiraBasemapOptions,
   DiraStyleOptions,
   DiraTileOptions,
