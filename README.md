@@ -78,7 +78,9 @@ Ce n'est pas un pis-aller : la carte web de Dira Maps fait exactement la même c
 > Pour le **thème de carte** du compte (style MapLibre par clé, web et mobile) :
 > [`docs/integration-themes.md`](docs/integration-themes.md). Pour une application **Android native
 > (Kotlin)** — il n'y a pas de SDK Kotlin, mais un client HTTP de 150 lignes à écrire en suivant les
-> mêmes règles : [`docs/integration-kotlin.md`](docs/integration-kotlin.md).
+> mêmes règles : [`docs/integration-kotlin.md`](docs/integration-kotlin.md). Pour un **frontend
+> web** (back-office, console, site) — ce paquet y fonctionne tel quel, avec MapLibre GL JS :
+> [`docs/integration-web.md`](docs/integration-web.md).
 
 ## Installation
 
