@@ -6,6 +6,20 @@ s'installe depuis son dépôt (voir [README](README.md#installation)).
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 versions selon [SemVer](https://semver.org/lang/fr/).
 
+## [0.4.1] — 2026-09-17
+
+Docs et exemple seulement ; l'API du paquet est celle de 0.4.0.
+
+### Modifié
+
+- Docs : jour/nuit est **un état de l'application** — un bouton, un réglage,
+  l'heure ; `useColorScheme()` n'est qu'une source parmi d'autres. Réécrit
+  dans `integration-themes.md` (web et mobile), la spec RN et la spec Kotlin.
+- Exemple : bouton « passer en nuit / en jour » ; le tracé survit au
+  changement de style (forme redonnée à chaque `onDidFinishLoadingStyle`) ;
+  l'accent de l'app remplace une couleur de routes grise ; marqueurs avec
+  fond et bordure (`collapsable={false}`) ; `expo-system-ui`.
+
 ## [0.4.0] — 2026-09-17
 
 Un thème Dira Maps a désormais **deux palettes**, jour et nuit ; c'est
