@@ -58,10 +58,14 @@ export default function App() {
       .catch(() => undefined); // sans thème lisible, les préréglages suffisent
   }, []);
   const theme = themes.find((t) => t.id === themeId) ?? PREREGLAGES[0]!;
-  // Jour ou nuit : celui du téléphone. Le serveur a les deux palettes de
-  // chaque thème ; changer de mode, c'est changer d'URL de style — la carte
-  // suit d'elle-même, sans redémarrer.
-  const scheme = useColorScheme();
+  // Jour ou nuit : un ÉTAT DE L'APPLICATION — ici un bouton, chez vous un
+  // réglage, l'heure, ce que vous voulez. Le serveur a les deux palettes de
+  // chaque thème ; changer de mode, c'est changer d'URL de style, et la carte
+  // suit d'elle-même, sans redémarrer. Tant que l'app n'a rien choisi, elle
+  // suit le téléphone (`useColorScheme()`), qui n'est qu'une source parmi d'autres.
+  const systeme = useColorScheme();
+  const [choix, setChoix] = useState<'light' | 'dark' | null>(null);
+  const scheme = choix ?? systeme;
   const app = apparence(scheme, theme.defaut);
   const palette = theme.palettes[app];
   const styleUrl = theme.styleUrl(scheme);
@@ -118,9 +122,17 @@ export default function App() {
             </Pressable>
           );
         })}
+        <Pressable
+          onPress={() => setChoix(app === 'sombre' ? 'light' : 'dark')}
+          style={[styles.themeChip, { borderColor: palette.libelles }]}
+        >
+          <Text style={[styles.themeChipText, { color: palette.libelles }]}>
+            {app === 'sombre' ? '☀ passer en jour' : '☾ passer en nuit'}
+          </Text>
+        </Pressable>
         <Text style={[styles.themeNote, { color: palette.libelles }]} numberOfLines={2}>
           {app === 'sombre' ? 'nuit' : 'jour'}
-          {scheme ? ' (mode du téléphone)' : ' (défaut du thème)'} —{' '}
+          {choix ? " (choix de l'app)" : scheme ? ' (mode du téléphone)' : ' (défaut du thème)'} —{' '}
           {themeId === 'cle' ? 'thème de la clé (/api/styles/<clé>.json?apparence=…)' : 'préréglage'}
           {IS_EXPO_GO
             ? ' — Expo Go : palette sur le tracé et les marqueurs seulement ; le fond thémé demande un development build'

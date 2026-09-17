@@ -76,10 +76,11 @@ Un repli en segments droits apparaît **en pointillé** sur la carte, pas seulem
 ## Les thèmes de carte — en development build
 
 Sous la carte, un sélecteur : **clé · <thème>** (le thème assigné à la clé dans le portail, lu
-depuis `/api/styles/<clé>.json`) puis les préréglages `dira` et `classique`. Chaque thème a une
-palette de **jour** et une de **nuit** : l'app passe `useColorScheme()` à `diraStyleUrl`, et la
-carte suit le mode du téléphone — basculer le mode sombre dans les réglages Android la change sans
-redémarrer (l'app est en `userInterfaceStyle: automatic`). Un thème est un **style MapLibre** ; le
+depuis `/api/styles/<clé>.json`) puis les préréglages `dira` et `classique`, et un bouton
+**☾ passer en nuit / ☀ passer en jour**. Chaque thème a une palette de **jour** et une de **nuit** ;
+l'app passe son choix à `diraStyleUrl({ colorScheme })` et la carte bascule sans redémarrer — c'est
+un état de l'app, pas du téléphone ; tant qu'elle n'a rien choisi, elle suit `useColorScheme()`
+(l'app est en `userInterfaceStyle: automatic`). Un thème est un **style MapLibre** ; le
 voir changer — les rues, l'eau, le sol aux couleurs du portail — exige un moteur vectoriel, donc un
 **module natif** qu'Expo Go ne charge pas :
 

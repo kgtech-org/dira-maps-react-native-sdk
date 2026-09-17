@@ -244,10 +244,11 @@ Si l'app veut le fond Dira **aux couleurs du thème** du compte, c'est un autre 
 `org.maplibre.gl:android-sdk` (Maven Central). Le thème ne s'applique pas à Google Maps.
 
 ```kotlin
-// Jour ou nuit : le mode du système. Un thème Dira a les deux palettes ; c'est l'app qui dit
-// laquelle — et qui rappelle setStyle quand le mode change (onConfigurationChanged / recréation).
-val nuit = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-val apparence = if (nuit) "sombre" else "clair"   // en Compose : isSystemInDarkTheme()
+// Jour ou nuit : un état de VOTRE app (un bouton, un réglage). Un thème Dira a les deux
+// palettes ; l'app dit laquelle, et rappelle setStyle quand elle change — la carte se redessine.
+// (Pour suivre le système à la place : isSystemInDarkTheme() en Compose, ou
+// resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK.)
+val apparence = if (modeNuit) "sombre" else "clair"
 
 mapView.getMapAsync { map ->
     map.setStyle(Style.Builder().fromUri("${BuildConfig.DIRA_MAPS_SITE_URL}/api/styles/${BuildConfig.DIRA_MAPS_API_KEY}.json?apparence=$apparence")) { style ->
@@ -263,9 +264,9 @@ MapLibre parle en `[lng, lat]` (`Point.fromLngLat`) comme l'API : pas de `toLatL
 Dira ne couvre que ≈ 13 km autour de chaque ville ; hors de là il est vide — garder Google Maps pour
 les écrans qui peuvent en sortir. Détails : `integration-themes.md`.
 
-**Acceptation** : la carte affiche Lomé aux couleurs du thème réglé dans le portail, de nuit quand
-le téléphone est en mode sombre et de jour sinon ; changer une couleur dans le portail se voit après
-relance (cache 5 min).
+**Acceptation** : la carte affiche Lomé aux couleurs du thème réglé dans le portail ; basculer
+`modeNuit` dans l'app et rappeler `setStyle` la passe de jour en nuit sans relance ; changer une
+couleur dans le portail se voit après relance (cache 5 min).
 
 ## 5. Pièges connus
 
