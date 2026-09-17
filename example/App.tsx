@@ -32,6 +32,12 @@ const COLORS = {
 
 const IS_EXPO_GO = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
+/** Un gris — blanc et noir compris — n'est pas une couleur d'accent. */
+function isGrey(hex: string): boolean {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  return Math.max(r!, g!, b!) - Math.min(r!, g!, b!) < 24;
+}
+
 export default function App() {
   const client = useMemo(
     () => new DiraMapsClient({ baseUrl: MAPS_API_URL, apiKey: MAPS_API_KEY }),
@@ -87,9 +93,11 @@ export default function App() {
         style={styles.map}
         coordinates={coordinates}
         approximate={approximate}
-        // Le tracé prend la couleur des routes du thème : c'est ce qu'une
-        // application fait de la palette — s'accorder à sa carte.
-        lineColor={palette.routes === '#ffffff' ? COLORS.line : palette.routes}
+        // Le tracé prend la couleur des routes du thème quand elle en est une —
+        // c'est ce qu'une application fait de la palette, s'accorder à sa carte.
+        // Sur un thème gris (le défaut), la rue et le tracé auraient la même
+        // couleur : l'accent de l'application prend le relais.
+        lineColor={isGrey(palette.routes) ? COLORS.line : palette.routes}
         palette={palette}
         styleUrl={styleUrl}
       />
@@ -97,7 +105,7 @@ export default function App() {
       <View style={[styles.themes, { backgroundColor: palette.sol }]}>
         {themes.map((t) => {
           const active = t.id === themeId;
-          const accent = t.palettes[app].routes === '#ffffff' ? '#bbb' : t.palettes[app].routes;
+          const accent = isGrey(t.palettes[app].routes) ? '#888' : t.palettes[app].routes;
           return (
             <Pressable
               key={t.id}
