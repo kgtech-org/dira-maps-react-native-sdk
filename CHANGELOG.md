@@ -6,6 +6,28 @@ s'installe depuis son dépôt (voir [README](README.md#installation)).
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 versions selon [SemVer](https://semver.org/lang/fr/).
 
+## [0.4.2] — 2026-09-17
+
+Exemple et docs seulement ; l'API du paquet est celle de 0.4.0.
+
+### Ajouté
+
+- Exemple : **le choix du moteur de carte**, explicite —
+  `EXPO_PUBLIC_MAPS_ENGINE=maplibre | native | tiles` (remplace
+  `EXPO_PUBLIC_MAPS_NATIVE_GROUND`). `native` = `react-native-maps`, sol
+  Google/Apple, tuiles Dira par-dessus ; la clé du SDK Google Maps vient de
+  `GOOGLE_MAPS_API_KEY` au prebuild (`app.config.js`), jamais du dépôt ni
+  du bundle.
+- Docs : « Choisir son moteur » — natif, MapLibre ou tuiles seules, quand
+  prendre lequel, ce qu'on perd — dans le README de l'exemple, la spec RN
+  et la spec Kotlin. Ce n'est pas un `useNativeMaps` dans le SDK : le SDK
+  ne rend aucune vue, le moteur se choisit dans l'app.
+
+### Corrigé
+
+- Exemple, carte native : le tracé passait sous les tuiles Dira (zIndex) ;
+  les tuiles à pleine opacité masquaient le sol.
+
 ## [0.4.1] — 2026-09-17
 
 Docs et exemple seulement ; l'API du paquet est celle de 0.4.0.
