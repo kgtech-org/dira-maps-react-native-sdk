@@ -216,12 +216,28 @@ Ne jamais `catch` en silence. Ne jamais transformer `auth` ou `quota` en ligne d
 
 **Acceptation** : un test unitaire par `kind` sur le composant qui affiche le bandeau.
 
-### Tâche 6 — (optionnel) Fond de carte Dira à la place de Google/Apple
+### Tâche 6 — Choisir son moteur de carte
+
+Le SDK ne rend aucune vue : **le moteur est le choix de l'app**, et le SDK alimente les trois de la
+même façon (tuiles, tracé, géocodage). Ce n'est pas un `useNativeMaps: true` dans le SDK — c'est un
+composant monté par l'app, et pour Google, une clé dans la configuration de l'app.
+
+| Moteur | Composant | Prendre si… | Ce qu'on perd |
+|---|---|---|---|
+| **natif** | `react-native-maps` (Google Android / Apple iOS) | l'app sort des villes couvertes, ou tient à la cartographie Google | le **thème** Dira et le jour/nuit : le composant dessine son sol |
+| **MapLibre** | `@maplibre/maplibre-react-native` | l'app veut **sa** carte, aux couleurs du portail, jour et nuit | la couverture hors des villes (≈ 13 km autour de chacune) ; un development build |
+| **tuiles Dira seules** | `UrlTile` sur `mapType="none"`, ou une grille | regarder ce que Dira sert vraiment | tout fond tiers |
+
+Pour le natif sur Android, la clé du **SDK Google Maps** va dans `android.config.googleMaps.apiKey`
+— via `app.config.js` et une variable de build (`GOOGLE_MAPS_API_KEY`), jamais commitée, jamais
+préfixée `EXPO_PUBLIC_` ; Expo Go la refuse, il faut un development build. iOS (Apple Maps) n'en
+demande pas. L'exemple du SDK implémente les trois derrière `EXPO_PUBLIC_MAPS_ENGINE` —
+`example/src/MapPane.tsx` est le modèle à copier.
 
 Par défaut, garder le fond natif : il est correct partout. Le fond Dira n'a de données que dans
 **≈ 13 km autour de chaque ville** ; hors de là, il est vide — pas moins détaillé, vide.
 
-Deux voies :
+Les deux voies Dira :
 
 - **Raster, avec `react-native-maps`** : `<UrlTile urlTemplate={diraBasemapTemplate({ siteUrl, apiKey })} />`
   sous les tuiles Dira, et `mapType="none"` sur Android pour ne pas dessiner le sol Google dessous.

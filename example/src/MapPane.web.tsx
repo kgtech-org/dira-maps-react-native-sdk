@@ -15,6 +15,9 @@ import { StyleSheet, Text, View } from 'react-native';
 import { CITY, MAPS_API_URL } from './config';
 import type { MapPaneProps } from './MapPane.types';
 
+/** Sur le web, aucun moteur : le volet dit ce qui manque (voir ci-dessous). */
+export const ENGINE_IN_USE = 'tiles' as const;
+
 export function MapPane({ coordinates, approximate, style, lineColor }: MapPaneProps) {
   const first = coordinates[0];
   const last = coordinates[coordinates.length - 1];

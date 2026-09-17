@@ -1,5 +1,10 @@
 /**
- * Carte du banc d'essai — implémentation NATIVE.
+ * Carte du banc d'essai — le CHOIX DU MOTEUR, et l'implémentation native.
+ *
+ * Trois moteurs, un même SDK (`EXPO_PUBLIC_MAPS_ENGINE`, voir `config.ts`) :
+ * MapLibre pour le thème, la carte native du téléphone, ou les tuiles Dira
+ * seules. C'est ici qu'une application décide — le SDK, lui, ne rend aucune
+ * vue et alimente les trois de la même façon.
  *
  * `react-native-maps` n'existe pas sur le web : il n'y a pas de carte du
  * système à emprunter dans un navigateur. Plutôt qu'un `Platform.OS === 'web'`
@@ -29,7 +34,7 @@ import { Platform } from 'react-native';
 import MapView, { Marker, Polyline, UrlTile } from 'react-native-maps';
 import { diraTileTemplate, toLatLng } from '@kgtech-org/dira-maps-react-native';
 
-import { CITY, CITY_CENTER, MAPS_API_KEY, MAPS_API_URL, NATIVE_GROUND, TOUR } from './config';
+import { CITY, CITY_CENTER, ENGINE, MAPS_API_KEY, MAPS_API_URL, TOUR, type Engine } from './config';
 import type { MapPaneProps } from './MapPane.types';
 import { TileGrid } from './TileGrid';
 import { VectorPane } from './VectorPane';
@@ -52,12 +57,23 @@ const GROUND_AVAILABLE = !(Platform.OS === 'android' && IS_EXPO_GO);
  */
 const VECTOR_AVAILABLE = !IS_EXPO_GO;
 
+/** Le moteur effectif : celui demandé, sinon le meilleur disponible ici. */
+export const ENGINE_IN_USE: Engine =
+  ENGINE ?? (VECTOR_AVAILABLE ? 'maplibre' : GROUND_AVAILABLE ? 'native' : 'tiles');
+
 export function MapPane(props: MapPaneProps) {
-  const { coordinates, approximate, style, lineColor } = props;
+  if (ENGINE_IN_USE === 'maplibre') return <VectorPane {...props} />;
+  if (ENGINE_IN_USE === 'tiles') return <TileGrid {...props} />;
+  return <NativePane {...props} />;
+}
 
-  if (VECTOR_AVAILABLE) return <VectorPane {...props} />;
-  if (!NATIVE_GROUND || !GROUND_AVAILABLE) return <TileGrid {...props} />;
-
+/**
+ * La carte NATIVE du téléphone — Google sur Android, Apple sur iOS — et les
+ * couches Dira par-dessus. Le thème Dira ne s'applique pas ici : c'est le
+ * composant qui dessine le sol, avec ses couleurs. Ce que le SDK lui donne
+ * est le même qu'à MapLibre : un gabarit de tuiles, un tracé en `LatLng`.
+ */
+function NativePane({ coordinates, approximate, style, lineColor }: MapPaneProps) {
   return (
     <MapView
       style={style}
@@ -68,16 +84,20 @@ export function MapPane(props: MapPaneProps) {
         longitudeDelta: 0.06,
       }}
     >
-      {/* Les couches Dira, EN TUILES, par-dessus le sol natif. */}
+      {/* Les couches Dira, EN TUILES, par-dessus le sol natif — en transparence :
+          à pleine opacité, ces PNG couvriraient le sol qu'on est venu comparer. */}
       <UrlTile
         urlTemplate={diraTileTemplate({ apiUrl: MAPS_API_URL, city: CITY, apiKey: MAPS_API_KEY })}
         zIndex={1}
+        opacity={0.5}
         maximumZ={19}
       />
       <Polyline
         coordinates={coordinates}
         strokeColor={lineColor}
         strokeWidth={4}
+        // Au-dessus des tuiles (zIndex 1) : sinon elles le recouvrent.
+        zIndex={2}
         // Le repli en segments droits se voit AUSSI sur la carte : en pointillé,
         // il ne peut pas se faire passer pour un itinéraire.
         lineDashPattern={approximate ? [8, 6] : undefined}
