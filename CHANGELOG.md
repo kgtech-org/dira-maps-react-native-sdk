@@ -13,10 +13,11 @@ l'application qui sait dans quel mode est l'écran, et qui le dit.
 
 ### Ajouté
 
-- `diraStyleUrl({ colorScheme })` : `'light'` | `'dark'` — passer
-  `useColorScheme()` tel quel (`null`/`undefined` = l'apparence par défaut du
-  thème, réglée dans le portail). L'URL porte `?apparence=clair|sombre` ;
-  changer de mode, c'est changer d'URL, et MapLibre recharge le style.
+- `diraStyleUrl({ colorScheme })` : `'light'` | `'dark'` — un état de l'app
+  (bouton, réglage ; ou `useColorScheme()` tel quel pour suivre le téléphone ;
+  `null`/`undefined` = l'apparence par défaut du thème, réglée dans le
+  portail). L'URL porte `?apparence=clair|sombre` ; changer, c'est changer
+  d'URL, et MapLibre recharge le style.
 - Type `ColorScheme`.
 - Banc d'essai : suit le mode du téléphone (`userInterfaceStyle: automatic`)
   et lit les deux palettes du thème de la clé ; préréglages `dira` et

@@ -17,9 +17,12 @@ MapLibre** complet par apparence, servi à :
 GET {site}/api/styles/{clé}.json?apparence=clair|sombre
 ```
 
-Le serveur ne sait pas si le téléphone est en mode nuit ; **l'application le sait** et le dit dans
-l'URL. Sans `apparence`, le thème rend son **apparence par défaut** (réglée dans le portail ; `dira`
-est de nuit par défaut). Le style porte `metadata["dira:apparence"]` et `metadata["dira:palette"]`.
+**C'est l'application qui choisit** jour ou nuit, et qui le dit dans l'URL — un bouton, un réglage
+de l'utilisateur, l'heure, ou le mode du téléphone si elle le veut : `apparence` est un état de
+l'app, pas une lecture du système. Changer d'apparence, c'est changer d'URL de style ; la carte
+bascule sans redémarrer. Sans `apparence`, le thème rend son **apparence par défaut** (réglée dans
+le portail ; `dira` est de nuit par défaut). Le style porte `metadata["dira:apparence"]` et
+`metadata["dira:palette"]`.
 
 Ce style décrit comment dessiner le **fond de carte vectoriel** de Dira (`/basemap/data/v3/…`,
 schéma OpenMapTiles, tuiles Sénégal – Togo – Guinée). Le rendu se fait **côté client**, par MapLibre.
@@ -83,14 +86,15 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { diraStyleUrl } from "@kgtech-org/dira-maps-react-native"; // fonctionne aussi sur le web
 // ou, sans le SDK : `${MAPS_SITE_URL}/api/styles/${MAPS_API_KEY}.json`
 
-// Jour ou nuit : ce que le navigateur préfère — et suivre ses changements.
-const nuit = window.matchMedia("(prefers-color-scheme: dark)");
-const styleUrl = () =>
-  diraStyleUrl({ siteUrl: MAPS_SITE_URL, apiKey: MAPS_API_KEY, colorScheme: nuit.matches ? "dark" : "light" });
+// Jour ou nuit : l'état de VOTRE app (un bouton, un réglage). Basculer, c'est
+// `map.setStyle(styleUrl("dark"))` — la carte se redessine, rien à recolorer.
+// (Pour suivre le navigateur à la place : `matchMedia("(prefers-color-scheme: dark)")`.)
+const styleUrl = (colorScheme: "light" | "dark") =>
+  diraStyleUrl({ siteUrl: MAPS_SITE_URL, apiKey: MAPS_API_KEY, colorScheme });
 
 const map = new maplibregl.Map({
   container: "map",
-  style: styleUrl(),
+  style: styleUrl("light"),
   center: [1.2228, 6.1319], // Lomé, [lng, lat]
   zoom: 13,
 });
@@ -117,13 +121,14 @@ et recharger la page (après 5 min, ou avec un cache-buster `?v=…` sur l'URL d
 ### Tâche 3 — Mobile, avec MapLibre (`@maplibre/maplibre-react-native`)
 
 ```tsx
-import { useColorScheme } from "react-native";
+import { useState } from "react";
 import { MapView, RasterSource, RasterLayer, Camera } from "@maplibre/maplibre-react-native";
 import { diraStyleUrl, diraTileTemplate } from "@kgtech-org/dira-maps-react-native";
 
-// Le mode du téléphone, tel quel : `light`, `dark`, ou null (pas de préférence → défaut du thème).
+// Jour ou nuit : un état de VOTRE app — un bouton, un réglage de l'utilisateur.
 // Quand il change, l'URL change, et MapLibre recharge le style — rien à recolorer.
-const colorScheme = useColorScheme();
+// (`useColorScheme()` de react-native rend la même chose si vous préférez suivre le téléphone.)
+const [colorScheme, setColorScheme] = useState<"light" | "dark">("light");
 
 <MapView style={{ flex: 1 }} mapStyle={diraStyleUrl({ siteUrl: MAPS_SITE_URL, apiKey: MAPS_API_KEY, colorScheme })}>
   <Camera centerCoordinate={[1.2228, 6.1319]} zoomLevel={13} />

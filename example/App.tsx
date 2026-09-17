@@ -32,6 +32,12 @@ const COLORS = {
 
 const IS_EXPO_GO = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
+/** Un gris — blanc et noir compris — n'est pas une couleur d'accent. */
+function isGrey(hex: string): boolean {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  return Math.max(r!, g!, b!) - Math.min(r!, g!, b!) < 24;
+}
+
 export default function App() {
   const client = useMemo(
     () => new DiraMapsClient({ baseUrl: MAPS_API_URL, apiKey: MAPS_API_KEY }),
@@ -52,10 +58,14 @@ export default function App() {
       .catch(() => undefined); // sans thème lisible, les préréglages suffisent
   }, []);
   const theme = themes.find((t) => t.id === themeId) ?? PREREGLAGES[0]!;
-  // Jour ou nuit : celui du téléphone. Le serveur a les deux palettes de
-  // chaque thème ; changer de mode, c'est changer d'URL de style — la carte
-  // suit d'elle-même, sans redémarrer.
-  const scheme = useColorScheme();
+  // Jour ou nuit : un ÉTAT DE L'APPLICATION — ici un bouton, chez vous un
+  // réglage, l'heure, ce que vous voulez. Le serveur a les deux palettes de
+  // chaque thème ; changer de mode, c'est changer d'URL de style, et la carte
+  // suit d'elle-même, sans redémarrer. Tant que l'app n'a rien choisi, elle
+  // suit le téléphone (`useColorScheme()`), qui n'est qu'une source parmi d'autres.
+  const systeme = useColorScheme();
+  const [choix, setChoix] = useState<'light' | 'dark' | null>(null);
+  const scheme = choix ?? systeme;
   const app = apparence(scheme, theme.defaut);
   const palette = theme.palettes[app];
   const styleUrl = theme.styleUrl(scheme);
@@ -87,9 +97,11 @@ export default function App() {
         style={styles.map}
         coordinates={coordinates}
         approximate={approximate}
-        // Le tracé prend la couleur des routes du thème : c'est ce qu'une
-        // application fait de la palette — s'accorder à sa carte.
-        lineColor={palette.routes === '#ffffff' ? COLORS.line : palette.routes}
+        // Le tracé prend la couleur des routes du thème quand elle en est une —
+        // c'est ce qu'une application fait de la palette, s'accorder à sa carte.
+        // Sur un thème gris (le défaut), la rue et le tracé auraient la même
+        // couleur : l'accent de l'application prend le relais.
+        lineColor={isGrey(palette.routes) ? COLORS.line : palette.routes}
         palette={palette}
         styleUrl={styleUrl}
       />
@@ -97,7 +109,7 @@ export default function App() {
       <View style={[styles.themes, { backgroundColor: palette.sol }]}>
         {themes.map((t) => {
           const active = t.id === themeId;
-          const accent = t.palettes[app].routes === '#ffffff' ? '#bbb' : t.palettes[app].routes;
+          const accent = isGrey(t.palettes[app].routes) ? '#888' : t.palettes[app].routes;
           return (
             <Pressable
               key={t.id}
@@ -110,9 +122,17 @@ export default function App() {
             </Pressable>
           );
         })}
+        <Pressable
+          onPress={() => setChoix(app === 'sombre' ? 'light' : 'dark')}
+          style={[styles.themeChip, { borderColor: palette.libelles }]}
+        >
+          <Text style={[styles.themeChipText, { color: palette.libelles }]}>
+            {app === 'sombre' ? '☀ passer en jour' : '☾ passer en nuit'}
+          </Text>
+        </Pressable>
         <Text style={[styles.themeNote, { color: palette.libelles }]} numberOfLines={2}>
           {app === 'sombre' ? 'nuit' : 'jour'}
-          {scheme ? ' (mode du téléphone)' : ' (défaut du thème)'} —{' '}
+          {choix ? " (choix de l'app)" : scheme ? ' (mode du téléphone)' : ' (défaut du thème)'} —{' '}
           {themeId === 'cle' ? 'thème de la clé (/api/styles/<clé>.json?apparence=…)' : 'préréglage'}
           {IS_EXPO_GO
             ? ' — Expo Go : palette sur le tracé et les marqueurs seulement ; le fond thémé demande un development build'

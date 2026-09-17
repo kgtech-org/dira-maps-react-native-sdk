@@ -227,9 +227,11 @@ Deux voies :
   sous les tuiles Dira, et `mapType="none"` sur Android pour ne pas dessiner le sol Google dessous.
   Le thème de l'application ne s'applique pas ici.
 - **Vecteur, avec `@maplibre/maplibre-react-native`** :
-  `mapStyle={diraStyleUrl({ siteUrl, apiKey, colorScheme: useColorScheme() })}` — le fond aux
-  couleurs du **thème** réglé dans le portail, en version **jour ou nuit selon le téléphone** (un thème
-  a les deux ; `null` = l'apparence par défaut du thème), le seul volet où le thème s'applique. C'est
+  `mapStyle={diraStyleUrl({ siteUrl, apiKey, colorScheme })}` — le fond aux couleurs du **thème**
+  réglé dans le portail, en version **jour ou nuit au choix de l'app** (`colorScheme: 'light' |
+  'dark'`, un état de l'app — bouton, réglage, ou `useColorScheme()` pour suivre le téléphone ;
+  `null` = l'apparence par défaut du thème ; changer, c'est changer d'URL, la carte suit), le seul
+  volet où le thème s'applique. C'est
   un autre composant de carte, qui exige un *development build* (module natif, absent d'Expo Go) ;
   ne pas mélanger les deux. La spec dédiée : `integration-themes.md` ; l'exemple du SDK
   (`example/src/VectorPane.tsx`) est l'implémentation de référence — tuiles Dira en `RasterSource`

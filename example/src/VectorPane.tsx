@@ -10,6 +10,7 @@
  * dans un development build (`npx expo run:android`). `MapPane` choisit.
  */
 import { Camera, LineLayer, MapView, MarkerView, RasterLayer, RasterSource, ShapeSource } from '@maplibre/maplibre-react-native';
+import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { diraTileTemplate, toLngLat } from '@kgtech-org/dira-maps-react-native';
 
@@ -22,6 +23,16 @@ export function VectorPane({ coordinates, approximate, style, lineColor, styleUr
   const line = coordinates.map((c) => [...toLngLat(c)] as [number, number]);
   const lngs = line.map((p) => p[0]);
   const lats = line.map((p) => p[1]);
+  // Charger un autre style (autre thème, passage en mode nuit) vide la carte
+  // de ses sources ajoutées à l'exécution, puis les y remet — mais une forme
+  // poussée entre les deux se perd, et le tracé disparaît. On redonne la
+  // forme au tracé à chaque style chargé : la source est alors bien en place.
+  const [styleEpoch, setStyleEpoch] = useState(0);
+  const shape = useMemo(
+    () => ({ type: 'Feature' as const, properties: { styleEpoch }, geometry: { type: 'LineString' as const, coordinates: line } }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [JSON.stringify(line), styleEpoch],
+  );
   // Un cadrage plus large que la tournée : le thème se juge sur un quartier,
   // pas sur trois rues. Le padding recule la caméra d'environ un niveau.
   const bounds = {
@@ -35,7 +46,13 @@ export function VectorPane({ coordinates, approximate, style, lineColor, styleUr
 
   return (
     <View style={[style, styles.pane]}>
-      <MapView style={styles.map} mapStyle={styleUrl} logoEnabled={false} attributionEnabled>
+      <MapView
+        style={styles.map}
+        mapStyle={styleUrl}
+        logoEnabled={false}
+        attributionEnabled
+        onDidFinishLoadingStyle={() => setStyleEpoch((epoch) => epoch + 1)}
+      >
         <Camera bounds={bounds} animationDuration={0} />
 
         {/*
@@ -53,7 +70,7 @@ export function VectorPane({ coordinates, approximate, style, lineColor, styleUr
           <RasterLayer id="dira" sourceID="dira" style={{ rasterOpacity: 0.35 }} />
         </RasterSource>
 
-        <ShapeSource id="trace" shape={{ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: line } }}>
+        <ShapeSource id="trace" shape={shape}>
           <LineLayer
             id="trace"
             style={{
@@ -69,7 +86,9 @@ export function VectorPane({ coordinates, approximate, style, lineColor, styleUr
 
         {TOUR.map((point, index) => (
           <MarkerView key={index} coordinate={[point[0], point[1]]}>
-            <View style={[styles.marker, { backgroundColor: lineColor }]}>
+            {/* `collapsable={false}` : Android aplatit sinon la vue du marqueur,
+                et la pastille perd fond et bordure — il ne reste que le numéro. */}
+            <View collapsable={false} style={[styles.marker, { backgroundColor: lineColor }]}>
               <Text style={styles.markerLabel}>{index + 1}</Text>
             </View>
           </MarkerView>
