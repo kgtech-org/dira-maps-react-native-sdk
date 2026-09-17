@@ -78,25 +78,42 @@ export function diraBasemapTemplate(options: DiraBasemapOptions): string {
   return withKey(`${site}/basemap/styles/${style}/{z}/{x}/{y}.png`, options.apiKey);
 }
 
+/** Ce que `useColorScheme()` (React Native) ou `prefers-color-scheme` (web) rendent. */
+export type ColorScheme = 'light' | 'dark' | null | undefined;
+
 export interface DiraStyleOptions {
   /** Racine du SITE Dira Maps — `https://maps.dira.llc`. */
   siteUrl: string;
   /** La clé API : le style est le sien, aux couleurs du thème de l'application. */
   apiKey: string;
+  /**
+   * Jour ou nuit. Un thème Dira Maps a deux palettes ; le serveur ne sait pas
+   * dans quel mode est l'écran, l'application si : passer `useColorScheme()`
+   * tel quel. Sans valeur (ou `null`), le thème rend son apparence par défaut.
+   */
+  colorScheme?: ColorScheme;
 }
+
+const APPARENCE: Record<'light' | 'dark', string> = { light: 'clair', dark: 'sombre' };
 
 /**
  * URL du style MapLibre de l'application — le fond de carte aux couleurs de son
- * thème, tel que réglé dans le portail Dira Maps.
+ * thème, tel que réglé dans le portail Dira Maps, en version jour ou nuit.
  *
  * S'adresse aux composants qui rendent en vecteur (MapLibre, sur web ou en
  * React Native via `@maplibre/maplibre-react-native`). Un composant à fond
  * natif (react-native-maps) ne sait pas l'appliquer : pour lui, le thème n'a
  * pas d'effet et {@link diraBasemapTemplate} reste la voie.
+ *
+ * Changer de `colorScheme`, c'est changer d'URL : donnée à `mapStyle` (ou
+ * `map.setStyle`), la carte bascule d'elle-même quand le téléphone passe en
+ * mode nuit — rien à recolorer.
  */
 export function diraStyleUrl(options: DiraStyleOptions): string {
   const site = options.siteUrl.replace(/\/+$/, '');
-  return `${site}/api/styles/${encodeURIComponent(options.apiKey.trim())}.json`;
+  const url = `${site}/api/styles/${encodeURIComponent(options.apiKey.trim())}.json`;
+  const scheme = options.colorScheme;
+  return scheme === 'light' || scheme === 'dark' ? `${url}?apparence=${APPARENCE[scheme]}` : url;
 }
 
 export interface DiraTileOptions {

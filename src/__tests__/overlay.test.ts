@@ -97,4 +97,23 @@ describe('clé API sur les gabarits', () => {
       'https://maps.dira.llc/api/styles/dira_live_k.json',
     );
   });
+
+  it('demande la variante jour ou nuit du thème, dans les mots du téléphone', () => {
+    // Le serveur ne sait pas si l'écran est en mode nuit ; `useColorScheme()`
+    // le sait, et se passe tel quel — y compris `null`/`undefined` (pas de
+    // préférence connue), auquel cas le thème rend son apparence par défaut.
+    const base = { siteUrl: 'https://maps.dira.llc', apiKey: 'dira_live_k' };
+    expect(diraStyleUrl({ ...base, colorScheme: 'dark' })).toBe(
+      'https://maps.dira.llc/api/styles/dira_live_k.json?apparence=sombre',
+    );
+    expect(diraStyleUrl({ ...base, colorScheme: 'light' })).toBe(
+      'https://maps.dira.llc/api/styles/dira_live_k.json?apparence=clair',
+    );
+    expect(diraStyleUrl({ ...base, colorScheme: null })).toBe(
+      'https://maps.dira.llc/api/styles/dira_live_k.json',
+    );
+    expect(diraStyleUrl({ ...base, colorScheme: undefined })).toBe(
+      'https://maps.dira.llc/api/styles/dira_live_k.json',
+    );
+  });
 });

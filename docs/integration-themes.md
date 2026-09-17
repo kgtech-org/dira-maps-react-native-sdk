@@ -9,12 +9,17 @@ critère d'acceptation.*
 ## 0. Ce qu'est un thème, et ce qu'il n'est pas
 
 Un **thème** est réglé dans le portail Dira Maps (`/admin/` → Thèmes) par le compte de l'application :
-six valeurs — fond clair ou sombre, et cinq couleurs (routes, eau, bâti, sol, libellés). Il est
-**assigné à une clé API**. Le serveur en dérive un **style MapLibre** complet, servi à :
+**deux palettes**, jour (`clair`) et nuit (`sombre`), de six valeurs chacune — fond, et cinq couleurs
+(routes, eau, bâti, sol, libellés). Il est **assigné à une clé API**. Le serveur en dérive un **style
+MapLibre** complet par apparence, servi à :
 
 ```
-GET {site}/api/styles/{clé}.json
+GET {site}/api/styles/{clé}.json?apparence=clair|sombre
 ```
+
+Le serveur ne sait pas si le téléphone est en mode nuit ; **l'application le sait** et le dit dans
+l'URL. Sans `apparence`, le thème rend son **apparence par défaut** (réglée dans le portail ; `dira`
+est de nuit par défaut). Le style porte `metadata["dira:apparence"]` et `metadata["dira:palette"]`.
 
 Ce style décrit comment dessiner le **fond de carte vectoriel** de Dira (`/basemap/data/v3/…`,
 schéma OpenMapTiles, tuiles Sénégal – Togo – Guinée). Le rendu se fait **côté client**, par MapLibre.
@@ -58,12 +63,17 @@ Trois conséquences à garder en tête :
 ### Tâche 1 — Assigner un thème à la clé (portail)
 
 Dans `/admin/` avec un utilisateur du compte : **Thèmes** → créer ou copier un préréglage (`dira`,
-`clair`, `sombre`), ajuster les couleurs — l'aperçu suit en direct — enregistrer. **Clés** → colonne
-Thème → choisir le thème. Sans thème assigné, la clé sert le préréglage `dira`.
+`classique`), ajuster les couleurs des deux volets, **Jour** et **Nuit** — chaque aperçu suit en
+direct ; « Dériver du jour / de la nuit » calcule l'autre côté depuis celui qu'on a réglé (même
+teinte, luminosité du rôle sur l'autre fond) —, choisir l'**apparence par défaut**, enregistrer.
+Un volet jamais réglé reste « dérivé » : il suit l'autre. **Clés** → colonne Thème → choisir le
+thème. Sans thème assigné, la clé sert le préréglage `dira`.
 
-**Acceptation** : `curl "$MAPS_SITE_URL/api/styles/$MAPS_API_KEY.json"` rend un JSON avec
-`"name": "Dira — <nom du thème>"` et `layers[0].paint.background-color` = la couleur de sol du thème.
-`404` = clé inconnue ou révoquée ; `403` = service `fond` désactivé pour cette clé.
+**Acceptation** : `curl "$MAPS_SITE_URL/api/styles/$MAPS_API_KEY.json?apparence=sombre"` rend un
+JSON avec `"name": "Dira — <nom du thème>"`, `metadata["dira:apparence"] == "sombre"` et
+`layers[0].paint.background-color` = la couleur de sol de la palette de nuit ; `?apparence=clair`,
+celle de jour. `404` = clé inconnue ou révoquée ; `403` = service `fond` désactivé pour cette clé ;
+`422` = apparence autre que `clair`/`sombre`.
 
 ### Tâche 2 — Web (`maplibre-gl`)
 
@@ -73,9 +83,14 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { diraStyleUrl } from "@kgtech-org/dira-maps-react-native"; // fonctionne aussi sur le web
 // ou, sans le SDK : `${MAPS_SITE_URL}/api/styles/${MAPS_API_KEY}.json`
 
+// Jour ou nuit : ce que le navigateur préfère — et suivre ses changements.
+const nuit = window.matchMedia("(prefers-color-scheme: dark)");
+const styleUrl = () =>
+  diraStyleUrl({ siteUrl: MAPS_SITE_URL, apiKey: MAPS_API_KEY, colorScheme: nuit.matches ? "dark" : "light" });
+
 const map = new maplibregl.Map({
   container: "map",
-  style: diraStyleUrl({ siteUrl: MAPS_SITE_URL, apiKey: MAPS_API_KEY }),
+  style: styleUrl(),
   center: [1.2228, 6.1319], // Lomé, [lng, lat]
   zoom: 13,
 });
@@ -102,10 +117,15 @@ et recharger la page (après 5 min, ou avec un cache-buster `?v=…` sur l'URL d
 ### Tâche 3 — Mobile, avec MapLibre (`@maplibre/maplibre-react-native`)
 
 ```tsx
+import { useColorScheme } from "react-native";
 import { MapView, RasterSource, RasterLayer, Camera } from "@maplibre/maplibre-react-native";
 import { diraStyleUrl, diraTileTemplate } from "@kgtech-org/dira-maps-react-native";
 
-<MapView style={{ flex: 1 }} mapStyle={diraStyleUrl({ siteUrl: MAPS_SITE_URL, apiKey: MAPS_API_KEY })}>
+// Le mode du téléphone, tel quel : `light`, `dark`, ou null (pas de préférence → défaut du thème).
+// Quand il change, l'URL change, et MapLibre recharge le style — rien à recolorer.
+const colorScheme = useColorScheme();
+
+<MapView style={{ flex: 1 }} mapStyle={diraStyleUrl({ siteUrl: MAPS_SITE_URL, apiKey: MAPS_API_KEY, colorScheme })}>
   <Camera centerCoordinate={[1.2228, 6.1319]} zoomLevel={13} />
   <RasterSource
     id="dira"
