@@ -16,15 +16,19 @@ Ce que Dira Maps donne à une application mobile, c'est **du JSON sur HTTP** et 
 
 | besoin de l'app | ce que Dira Maps fournit | ce que l'app fait |
 |---|---|---|
-| tracer un itinéraire | `POST /api/calc/route` → tracé routier `[lng, lat][]` | une `<Polyline>` sur la carte **native** du téléphone |
+| tracer un itinéraire | `POST /api/calc/route` → tracé routier `[lng, lat][]` | une `<Polyline>` (carte native) ou une couche `line` (MapLibre) |
 | nommer un point | `GET /api/geocode/reverse` → adresse | un texte |
-| chercher une adresse | `GET /api/geocode?q=` → résultats | une liste |
-| montrer le bâti, la voirie, l'eau de Dira | `/api/tiles/{ville}/{z}/{x}/{y}.png` | un `<UrlTile>` par-dessus la carte native |
-| un fond de carte Dira (optionnel) | `/basemap/…` (raster) ou `/api/styles/<clé>.json` (MapLibre) | à la place du fond Google/Apple |
+| chercher un lieu | `GET /api/geocode?q=&ville=` → résultats (base Dira, puis Google Places) | une liste |
+| montrer le bâti, la voirie, l'eau de Dira | `/api/tiles/{ville}/{z}/{x}/{y}.png` | un `<UrlTile>` / une `RasterSource` par-dessus la carte |
+| un fond de carte aux couleurs de l'app, jour et nuit | `/api/styles/<clé>.json?apparence=clair\|sombre` (style MapLibre) | `mapStyle` d'une carte MapLibre |
+| un fond de carte Dira sans thème | `/basemap/…` (raster) | à la place du fond Google/Apple |
 
-**La carte, c'est celle du téléphone** (`react-native-maps` : Google Maps sur Android, Apple Maps sur
-iOS). Dira Maps se pose dessus. C'est exactement ce que fait la console d'administration Dira Food et
-le simulateur de dira-tracking.
+**La carte, c'est celle que l'app monte** — et c'est son choix, pas celui du SDK (tâche 6) :
+la carte **native** du téléphone (`react-native-maps` : Google Maps sur Android, Apple Maps sur
+iOS), correcte partout, le défaut ; ou **MapLibre** (`@maplibre/maplibre-react-native`), la seule
+qui rende le **thème** réglé dans le portail, jour et nuit. Dira Maps se pose sur l'une comme sur
+l'autre, avec les mêmes appels. C'est exactement ce que fait la console d'administration Dira Food
+et le simulateur de dira-tracking.
 
 Le SDK `@kgtech-org/dira-maps-react-native` encapsule tout ça : client typé, service d'itinéraire avec
 repli **signalé**, hook React, conversion de coordonnées, gabarits d'URL. Zéro dépendance à
@@ -133,12 +137,14 @@ export function DeliveryMap({ delivery, driverPosition }) {
         <UrlTile
           urlTemplate={diraTileTemplate({ apiUrl: MAPS_API_URL, city: delivery.city, apiKey: MAPS_API_KEY })}
           zIndex={1}
+          opacity={0.5}                      // à pleine opacité, ces PNG couvrent le sol
           maximumZ={19}
         />
         <Polyline
           coordinates={coordinates}          // déjà en { latitude, longitude }
           strokeWidth={4}
           strokeColor="#7a1f2b"
+          zIndex={2}                         // AU-DESSUS des tuiles, sinon elles le recouvrent
           lineDashPattern={approximate ? [8, 6] : undefined}   // règle 3
         />
         {stops.map((s, i) => <Marker key={i} coordinate={toLatLng(s)} />)}
@@ -278,6 +284,16 @@ Les deux voies Dira :
   fait. Ne pas la mettre à la main dans l'URL, ni l'oublier.
 - **`RouteService` mémorise par tournée** : appeler `diraRoutes.clear()` en fin de course ou au
   changement de tournée, pas à chaque écran.
+- **Le tracé sous les tuiles** : dans `react-native-maps`, un `<UrlTile zIndex={1}>` recouvre une
+  `<Polyline>` sans `zIndex` — elle est là, invisible. `zIndex={2}` sur le tracé.
+- **MapLibre vide la carte à chaque `setStyle`** (autre thème, bascule jour/nuit) : les sources
+  ajoutées à l'exécution sont remises par la bibliothèque, mais une forme poussée entre les deux se
+  perd — redonner sa forme au tracé sur `onDidFinishLoadingStyle`. Ne pas remonter les sources par
+  `key` : le module natif plante (`MLRNSource.getLayerAt`). Et `collapsable={false}` sur la vue d'un
+  `MarkerView`, sinon Android l'aplatit et la pastille perd fond et bordure. L'exemple du SDK
+  (`example/src/VectorPane.tsx`) fait les trois.
+- **Metro ne voit pas toujours une modification** (bundle « 1 module » en boucle) : relancer avec
+  `--clear`. Et un dev build se reconstruit après tout changement d'`app.json`/`app.config.js`.
 
 ## 5. Vérifier sans appareil
 
