@@ -113,10 +113,10 @@ Utile pour un essai rapide, ou si vous ne voulez pas gérer d'authentification.
 **Épinglez un tag** :
 
 ```sh
-npm install github:kgtech-org/dira-maps-react-native-sdk#v0.4.2
+npm install github:kgtech-org/dira-maps-react-native-sdk#v0.4.3
 ```
 
-Sans le `#v0.4.2`, npm suit la branche par défaut : la version installée change
+Sans le `#v0.4.3`, npm suit la branche par défaut : la version installée change
 alors sans que rien ne le dise dans votre `package-lock.json`, et deux machines
 de la même équipe peuvent compiler des paquets différents.
 

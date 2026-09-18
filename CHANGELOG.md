@@ -6,6 +6,20 @@ s'installe depuis son dépôt (voir [README](README.md#installation)).
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 versions selon [SemVer](https://semver.org/lang/fr/).
 
+## [0.4.3] — 2026-09-18
+
+Docs seulement ; l'API du paquet est celle de 0.4.0.
+
+### Ajouté
+
+- `docs/integration-web.md` : intégrer Dira Maps dans un **frontend web**
+  (back-office, console, site) — MapLibre GL JS comme moteur recommandé, ce
+  paquet qui fonctionne tel quel dans un navigateur, `[lng, lat]` partout
+  donc aucune conversion, une clé publique par application web, jour/nuit
+  comme état de l'app, et **CORS par clé** en tâche 0 (dira-maps#45, #46 :
+  une clé présentée obtient l'en-tête, le portail permet de restreindre la
+  clé aux origines de l'app).
+
 ## [0.4.2] — 2026-09-17
 
 Exemple et docs seulement ; l'API du paquet est celle de 0.4.0.
