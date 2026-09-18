@@ -123,7 +123,7 @@ en recette et en production.
 ### Tâche 1 — Installer le SDK et un module `dira-maps.ts` unique
 
 ```sh
-npm install github:kgtech-org/dira-maps-react-native-sdk#v0.4.2   # tag : voir CHANGELOG.md du SDK
+npm install github:kgtech-org/dira-maps-react-native-sdk#v0.4.3   # tag : voir CHANGELOG.md du SDK
 npm install maplibre-gl                                            # le moteur de carte
 ```
 
