@@ -6,6 +6,19 @@ s'installe depuis son dépôt (voir [README](README.md#installation)).
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 versions selon [SemVer](https://semver.org/lang/fr/).
 
+## [0.4.4] — 2026-09-18
+
+Docs seulement ; l'API du paquet est celle de 0.4.0.
+
+### Modifié
+
+- `docs/integration-react-native.md`, relue de bout en bout : la carte est
+  celle que l'app monte — native (le défaut) ou MapLibre (le thème, jour et
+  nuit) — et le SDK alimente les deux ; le tracé au-dessus des tuiles
+  (`zIndex`) ; trois pièges vus sur appareil (tracé sous les tuiles,
+  MapLibre qui vide la carte à chaque `setStyle`, `MarkerView` aplati sur
+  Android).
+
 ## [0.4.3] — 2026-09-18
 
 Docs seulement ; l'API du paquet est celle de 0.4.0.
