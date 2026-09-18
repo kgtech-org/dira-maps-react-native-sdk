@@ -82,7 +82,7 @@ configuration.
 
 npm install @kgtech-org/dira-maps-react-native
 # ou, sans jeton, en épinglant un tag (le dernier : voir CHANGELOG.md du SDK) :
-npm install github:kgtech-org/dira-maps-react-native-sdk#v0.4.3
+npm install github:kgtech-org/dira-maps-react-native-sdk#v0.4.4
 ```
 
 > `apiKey`, `diraStyleUrl` et les erreurs `auth`/`quota` existent depuis **v0.3.0** ;
