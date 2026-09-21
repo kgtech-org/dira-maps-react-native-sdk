@@ -50,7 +50,7 @@ Claude Code doit les vérifier dans le code produit. Chacune a fait perdre du te
    passe **uniquement** par `toLatLng` / `toLngLat` du SDK. À Lomé (1.22 E, 6.14 N) une inversion
    ne se voit pas à l'œil et place le point au large de la Somalie.
 2. **`ville` vient des données métier** (`delivery.city`, `shop.city`…), jamais d'une déduction
-   locale. Codes valides : `dakar`, `lome`, `conakry` — ceux de `GET /api/villes`.
+   locale. Codes valides : `dakar`, `lome`, `conakry`, `ndjamena`, `libreville` — ceux de `GET /api/villes`.
 3. **La clé API vient de la configuration de build** (`VITE_MAPS_API_KEY`, `NEXT_PUBLIC_…`), jamais
    d'une constante dans le code. Une clé web est **publique par nature** (elle est dans le bundle et
    dans les URL de tuiles) : c'est prévu — elle identifie l'application, ne donne aucun droit

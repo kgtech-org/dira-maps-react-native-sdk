@@ -6,6 +6,13 @@ s'installe depuis son dépôt (voir [README](README.md#installation)).
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 versions selon [SemVer](https://semver.org/lang/fr/).
 
+## [Non publié]
+
+### Ajouté
+
+- Deux villes desservies de plus, `ndjamena` (Tchad) et `libreville` (Gabon) :
+  le type `City` et les codes valides des specs.
+
 ## [0.4.4] — 2026-09-18
 
 Docs seulement ; l'API du paquet est celle de 0.4.0.
