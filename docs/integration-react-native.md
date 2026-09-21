@@ -44,7 +44,7 @@ Claude Code doit les vérifier dans le code produit. Chacune a fait perdre du te
    voit pas à l'œil et place le point au large de la Somalie. Les deux types sont distincts pour que
    TypeScript refuse le mélange : ne pas les contourner avec `as`.
 2. **`city` vient de l'API métier** (`delivery.city`, `ride.city`…), jamais d'une déduction locale
-   (« si la latitude est > 10 c'est Dakar »). Codes valides : `dakar`, `lome`, `conakry`.
+   (« si la latitude est > 10 c'est Dakar »). Codes valides : `dakar`, `lome`, `conakry`, `ndjamena`, `libreville`.
 3. **Un repli est toujours signalé.** Quand le moteur de routage est indisponible, le SDK rend des
    segments droits avec `approximate: true`. L'écran DOIT le montrer (pointillé + mention). Une ligne
    droite présentée comme un itinéraire fait rouler quelqu'un dans un mur.

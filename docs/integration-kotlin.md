@@ -45,7 +45,7 @@ Claude Code doit les vérifier dans le code produit. Chacune a fait perdre du te
    place le point au large de la Somalie. Représenter le fil par une `value class LngLat` et la
    carte par `LatLng` : le compilateur refuse alors le mélange.
 2. **`city` vient de l'API métier** (`delivery.city`, `ride.city`…), jamais d'une déduction locale.
-   Codes valides : `dakar`, `lome`, `conakry`.
+   Codes valides : `dakar`, `lome`, `conakry`, `ndjamena`, `libreville`.
 3. **Un repli est toujours signalé.** Si le moteur de routage est indisponible (503), l'app trace des
    segments droits entre les étapes **et le dit** (pointillé + bandeau). Une ligne droite présentée
    comme un itinéraire fait rouler quelqu'un dans un mur.
