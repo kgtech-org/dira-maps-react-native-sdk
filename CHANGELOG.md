@@ -6,7 +6,7 @@ s'installe depuis son dépôt (voir [README](README.md#installation)).
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 versions selon [SemVer](https://semver.org/lang/fr/).
 
-## [Non publié]
+## [0.4.5] — 2026-09-21
 
 ### Ajouté
 
