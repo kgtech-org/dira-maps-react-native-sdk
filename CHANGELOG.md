@@ -6,6 +6,30 @@ s'installe depuis son dépôt (voir [README](README.md#installation)).
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 versions selon [SemVer](https://semver.org/lang/fr/).
 
+## [0.4.7] — 2026-09-26
+
+Rien ne change dans le paquet ; son API est celle de 0.4.0. Ce qui change est
+côté serveur, dans le style que `diraStyleUrl()` va chercher.
+
+### Modifié
+
+- **Les lieux Dira portent l'icône de leur catégorie.** Quand le thème de
+  l'application affiche les lieux Dira (option *Lieux Dira sur la carte*, dans
+  la console), ils s'affichaient tous en point circulaire : une pharmacie, un
+  hôtel et une école étaient le même point. Le style servi par
+  `diraStyleUrl()` associe maintenant 161 catégories Overture à 48 icônes —
+  87 % des lieux ; les autres gardent un repère générique.
+
+  Ce que ça change dans une application : **rien à faire**, le style arrive
+  déjà ainsi. Les icônes apparaissent à partir du **zoom 15**, leur nom à
+  partir de 16 ; en dessous de 15, la pastille aux couleurs du thème comme
+  avant. Un composant à fond natif (`react-native-maps`) n'est pas concerné —
+  il n'applique pas le style, voir `diraBasemapTemplate()`.
+
+  Les icônes gardent leurs couleurs (glyphe coloré sur pastille blanche) :
+  elles ne suivent pas la palette du thème, et se lisent sur fond clair comme
+  sur fond sombre.
+
 ## [0.4.6] — 2026-09-26
 
 Rien ne change dans le paquet ; son API est celle de 0.4.0. Ce qui change est
