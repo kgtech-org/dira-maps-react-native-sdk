@@ -6,6 +6,25 @@ s'installe depuis son dépôt (voir [README](README.md#installation)).
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 versions selon [SemVer](https://semver.org/lang/fr/).
 
+## [0.4.6] — 2026-09-26
+
+Rien ne change dans le paquet ; son API est celle de 0.4.0. Ce qui change est
+côté serveur, et se voit dans ce que le SDK rend.
+
+### Modifié
+
+- **La fraîcheur des réponses Google est devenue un réglage.** Une réponse de
+  Google était resservie trente jours — le plafond des CGU Google Maps, pas une
+  durée choisie : un commerce déplacé ou fermé restait rendu un mois durant.
+  La console Dira Maps (Paramètres → *Fraîcheur des réponses Google*) accepte
+  maintenant de 1 à 30 jours ; trente reste un plafond contractuel, pas un
+  défaut qu'on peut relever.
+
+  Ce que ça change ici : `geocode()` et `reverseGeocode()` rendent des données
+  d'autant plus fraîches que le délai est court. Rien à changer dans une
+  application — le réglage vaut pour toutes, et le baisser coûte des appels
+  Google supplémentaires, décidés côté plateforme.
+
 ## [0.4.5] — 2026-09-21
 
 ### Ajouté
